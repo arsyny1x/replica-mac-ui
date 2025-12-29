@@ -23,7 +23,7 @@ A modern, sleek, and macOS-inspired User Interface library for Roblox scripts. D
 To use this library in your script, `loadstring` the source (replace the URL with your actual raw file link):
 
 ```lua
-local Library = loadstring(game:HttpGet("YOUR_RAW_GITHUB_URL_HERE"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/arsyny1x/replica-mac-ui/refs/heads/main/main.lua"))()
 ```
 
 ## 🛠️ Documentation
