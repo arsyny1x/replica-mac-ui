@@ -249,7 +249,7 @@ function Library.CreateWindow(options)
 		local icon = Instance.new("ImageLabel")
 		icon.Name = "Icon"
 		icon.Size = UDim2.fromOffset(20, 20)
-		icon.Position = pos or UDim2.new(0, 10, 0.5, 0)
+		icon.Position = pos or UDim2.new(0, -28, 0.5, 0)
 		icon.AnchorPoint = Vector2.new(0, 0.5)
 		icon.BackgroundTransparency = 1
 		icon.Image = info.Url
@@ -1522,4 +1522,4 @@ function Library:SelectTab(name)
 	end
 end
 
-return Library
+return Library 
