@@ -42,8 +42,12 @@ local Window = Library.CreateWindow({
 
 ### 2. Create a Tab
 ```lua
--- Arguments: Name, Subtitle, Icon Name (Lucide)
-local MainTab = Window:CreateTab("Main", "Auto Farm & Stats", "home") 
+local MainTab = Window:CreateTab({
+    Name = "Main",
+    Subtitle = "Auto Farm & Stats",
+    Icon = "a-arrow-down"
+}) 
+
 ```
 
 ### 3. Add Elements
