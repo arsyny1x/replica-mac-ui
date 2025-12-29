@@ -249,7 +249,7 @@ function Library.CreateWindow(options)
 		local icon = Instance.new("ImageLabel")
 		icon.Name = "Icon"
 		icon.Size = UDim2.fromOffset(20, 20)
-		icon.Position = pos or UDim2.new(0, -28, 0.5, 0) -- Default: ชิดซ้าย (Offset 10px, Center Y)
+		icon.Position = pos or UDim2.new(0, 10, 0.5, 0)
 		icon.AnchorPoint = Vector2.new(0, 0.5)
 		icon.BackgroundTransparency = 1
 		icon.Image = info.Url
@@ -789,7 +789,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		local padding = Instance.new("UIPadding", btn)
 		padding.PaddingLeft = UDim.new(0, 15)
 		if icon then
-			window:CreateIcon(btn, icon, UDim2.new(0, 12, 0.5, 0))
+			window:CreateIcon(btn, icon)
 			padding.PaddingLeft = UDim.new(0, 40)
 		end
 		btn.MouseButton1Click:Connect(callback)
