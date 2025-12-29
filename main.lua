@@ -1502,3 +1502,5 @@ function Library:SelectTab(name)
 		end
 	end
 end
+
+return Library
