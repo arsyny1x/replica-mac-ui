@@ -46,13 +46,22 @@ function Library.CreateWindow(options)
 	self.ConfigUpdates = {}
 	
 	function self:SaveConfig(name)
+		local path = name
+		if self.Folder then
+			if not isfolder(self.Folder) then makefolder(self.Folder) end
+			path = self.Folder .. "/" .. name
+		end
 		local json = HttpService:JSONEncode(self.Flags)
-		writefile(name .. ".json", json)
+		writefile(path .. ".json", json)
 	end
 	
 	function self:LoadConfig(name)
-		if isfile(name .. ".json") then
-			local json = readfile(name .. ".json")
+		local path = name
+		if self.Folder then
+			path = self.Folder .. "/" .. name
+		end
+		if isfile(path .. ".json") then
+			local json = readfile(path .. ".json")
 			local data = HttpService:JSONDecode(json)
 			for k, v in pairs(data) do
 				self.Flags[k] = v
@@ -148,14 +157,14 @@ function Library.CreateWindow(options)
 	self.Header.Parent = self.Main
 
 	-- Sidebar Separator (Line that appears when scrolling)
-	local sbSep = Instance.new("Frame")
-	sbSep.Name = "SidebarSeparator"
-	sbSep.Size = UDim2.new(0, 180, 0, 1)
-	sbSep.Position = UDim2.new(0, 0, 0, 55)
-	sbSep.BackgroundTransparency = 1
-	sbSep.BorderSizePixel = 0
-	sbSep.ZIndex = 5
-	sbSep.Parent = self.Main
+	local sidebarSeparator = Instance.new("Frame")
+	sidebarSeparator.Name = "SidebarSeparator"
+	sidebarSeparator.Size = UDim2.new(0, 180, 0, 1)
+	sidebarSeparator.Position = UDim2.new(0, 0, 0, 55)
+	sidebarSeparator.BackgroundTransparency = 1
+	sidebarSeparator.BorderSizePixel = 0
+	sidebarSeparator.ZIndex = 5
+	sidebarSeparator.Parent = self.Main
 
 	-- Sidebar Header (Static background for top left)
 	local sbHeader = Instance.new("Frame")
@@ -181,19 +190,19 @@ function Library.CreateWindow(options)
 	self.Sidebar.Parent = self.Main
 	
 
-	local sbFade
+	local sidebarFadeTween
 	self.Sidebar:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
-		sbSep.BackgroundTransparency = (self.Sidebar.CanvasPosition.Y > 5) and 0 or 1
-		if sbFade then sbFade:Cancel() end
+		sidebarSeparator.BackgroundTransparency = (self.Sidebar.CanvasPosition.Y > 5) and 0 or 1
+		if sidebarFadeTween then sidebarFadeTween:Cancel() end
 		self.Sidebar.ScrollBarImageTransparency = 0.7
-		sbFade = TweenService:Create(self.Sidebar, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.5), {ScrollBarImageTransparency = 1})
-		sbFade:Play()
+		sidebarFadeTween = TweenService:Create(self.Sidebar, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.5), {ScrollBarImageTransparency = 1})
+		sidebarFadeTween:Play()
 	end)
 
-	local sLayout = Instance.new("UIListLayout", self.Sidebar)
-	sLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	sLayout.Padding = UDim.new(0, 5)
-	sLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	local sidebarLayout = Instance.new("UIListLayout", self.Sidebar)
+	sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	sidebarLayout.Padding = UDim.new(0, 5)
+	sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	Instance.new("UIPadding", self.Sidebar).PaddingTop = UDim.new(0, 10)
 
 	-- Content Area
@@ -233,17 +242,21 @@ function Library.CreateWindow(options)
 	function self:CreateIcon(parent, iconName, pos)
 		if not iconName then return end
 		local info = Lucide.GetAsset(iconName)
-		if not info then return end
+		if not info then
+			return
+		end
 
-		local icon = Instance.new("ImageLabel", parent)
+		local icon = Instance.new("ImageLabel")
 		icon.Name = "Icon"
 		icon.Size = UDim2.fromOffset(20, 20)
-		icon.Position = pos or UDim2.fromScale(0, 0.5)
+		icon.Position = pos or UDim2.new(0, -28, 0.5, 0) -- Default: ชิดซ้าย (Offset 10px, Center Y)
 		icon.AnchorPoint = Vector2.new(0, 0.5)
 		icon.BackgroundTransparency = 1
 		icon.Image = info.Url
 		icon.ImageRectSize = info.ImageRectSize
 		icon.ImageRectOffset = info.ImageRectOffset
+		icon.ZIndex = (parent.ZIndex or 1) + 1
+		icon.Parent = parent
 		self:AddThemeObject(icon, {ImageColor3 = "Text"})
 		return icon
 	end
@@ -399,43 +412,43 @@ function Library.CreateWindow(options)
 	nLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	nLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-	function self:Notify(titleText, descText, duration)
+	function self:Notify(titleText, descriptionText, duration)
 		local frame = Instance.new("Frame", notifyHolder)
 		frame.Size = UDim2.new(1, 0, 0, 60)
 		frame.BackgroundTransparency = 0.1
 		frame.Position = UDim2.fromOffset(300, 0) -- Start off screen
 		Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 		local stroke = Instance.new("UIStroke", frame)
-		
-		local tLabel = Instance.new("TextLabel", frame)
-		tLabel.Text = titleText
-		tLabel.Size = UDim2.new(1, -20, 0, 25)
-		tLabel.Position = UDim2.fromOffset(10, 5)
-		tLabel.Font = Enum.Font.GothamBold
-		tLabel.TextSize = 14
-		tLabel.TextXAlignment = Enum.TextXAlignment.Left
-		tLabel.BackgroundTransparency = 1
-		
-		local dLabel = Instance.new("TextLabel", frame)
-		dLabel.Text = descText
-		dLabel.Size = UDim2.new(1, -20, 0, 25)
-		dLabel.Position = UDim2.fromOffset(10, 28)
-		dLabel.Font = Enum.Font.Gotham
-		dLabel.TextSize = 13
-		dLabel.TextXAlignment = Enum.TextXAlignment.Left
-		dLabel.BackgroundTransparency = 1
+
+		local titleLabel = Instance.new("TextLabel", frame)
+		titleLabel.Text = titleText
+		titleLabel.Size = UDim2.new(1, -20, 0, 25)
+		titleLabel.Position = UDim2.fromOffset(10, 5)
+		titleLabel.Font = Enum.Font.GothamBold
+		titleLabel.TextSize = 14
+		titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+		titleLabel.BackgroundTransparency = 1
+
+		local descriptionLabel = Instance.new("TextLabel", frame)
+		descriptionLabel.Text = descriptionText
+		descriptionLabel.Size = UDim2.new(1, -20, 0, 25)
+		descriptionLabel.Position = UDim2.fromOffset(10, 28)
+		descriptionLabel.Font = Enum.Font.Gotham
+		descriptionLabel.TextSize = 13
+		descriptionLabel.TextXAlignment = Enum.TextXAlignment.Left
+		descriptionLabel.BackgroundTransparency = 1
 
 		self:AddThemeObject(frame, {BackgroundColor3 = "ElementBG"})
 		self:AddThemeObject(stroke, {Color = "Stroke"})
-		self:AddThemeObject(tLabel, {TextColor3 = "Text"})
-		self:AddThemeObject(dLabel, {TextColor3 = "TextSub"})
+		self:AddThemeObject(titleLabel, {TextColor3 = "Text"})
+		self:AddThemeObject(descriptionLabel, {TextColor3 = "TextSub"})
 
 		TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Position = UDim2.fromOffset(0, 0)}):Play()
 		
 		task.delay(duration or 3, function()
 			TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0)}):Play()
-			TweenService:Create(tLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 1}):Play()
-			TweenService:Create(dLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 1}):Play()
+			TweenService:Create(titleLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 1}):Play()
+			TweenService:Create(descriptionLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 1}):Play()
 			TweenService:Create(stroke, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Transparency = 1}):Play()
 			task.wait(0.5)
 			frame:Destroy()
@@ -525,14 +538,14 @@ function Library.CreateWindow(options)
 	-- Apply Initial Theme
 	self:AddThemeObject(self.Main, {BackgroundColor3 = "Main"})
 	self:AddThemeObject(mainStroke, {Color = "Stroke"})
-	self:AddThemeObject(sbSep, {BackgroundColor3 = "Stroke"})
+	self:AddThemeObject(sidebarSeparator, {BackgroundColor3 = "Stroke"})
 	self:AddThemeObject(sbHeader, {BackgroundColor3 = "Sidebar"})
 	self:AddThemeObject(self.Sidebar, {BackgroundColor3 = "Sidebar", ScrollBarImageColor3 = "ScrollBar"})
 	self:AddThemeObject(resizer, {ImageColor3 = "TextSub"})
 
 	-- Global Keybind Listener
-	UserInputService.InputBegan:Connect(function(input, gp)
-		if not gp and input.KeyCode == self.ToggleKey then
+	UserInputService.InputBegan:Connect(function(input, gameProcessed)
+		if not gameProcessed and input.KeyCode == self.ToggleKey then
 			self.ScreenGui.Enabled = not self.ScreenGui.Enabled
 		end
 	end)
@@ -545,11 +558,19 @@ function Library.CreateWindow(options)
 end
 
 function Library:CreateTab(name, subtitle, iconName)
+	if type(name) == "table" then
+		local options = name
+		name = options.Name
+		subtitle = options.Subtitle
+		iconName = options.Icon
+	end
+
 	local window = self
 	window.TabCount = window.TabCount + 1
 	local tabBtn = Instance.new("TextButton", self.Sidebar)
 	tabBtn.LayoutOrder = window.TabCount
 	tabBtn.Name = name
+	tabBtn.ZIndex = 2
 	tabBtn.Size = UDim2.new(0.92, 0, 0, 32)
 	tabBtn.BackgroundTransparency = 1
 	tabBtn.Text = name
@@ -560,7 +581,7 @@ function Library:CreateTab(name, subtitle, iconName)
 
 	local padding = Instance.new("UIPadding", tabBtn)
 	if iconName then
-		window:CreateIcon(tabBtn, iconName, UDim2.new(0, 10, 0.5, 0))
+		window:CreateIcon(tabBtn, iconName) -- ใช้ค่า Default จาก CreateIcon
 		padding.PaddingLeft = UDim.new(0, 38)
 	else
 		padding.PaddingLeft = UDim.new(0, 12)
@@ -585,16 +606,16 @@ function Library:CreateTab(name, subtitle, iconName)
 	page.ScrollBarThickness = 3
 	page.ScrollBarImageTransparency = 1 -- เริ่มต้นซ่อน
 	
-	local pLayout = Instance.new("UIListLayout", page)
-	pLayout.Padding = UDim.new(0, 15) -- ระยะห่างระหว่าง Group
-	pLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	pLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	local pageLayout = Instance.new("UIListLayout", page)
+	pageLayout.Padding = UDim.new(0, 15) -- ระยะห่างระหว่าง Group
+	pageLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	
-	local pPadding = Instance.new("UIPadding", page)
-	pPadding.PaddingLeft = UDim.new(0, 25) -- เพิ่มระยะห่าง
-	pPadding.PaddingRight = UDim.new(0, 20) -- ลดขวาลงนิดนึงเพราะ Scrollbar ลอยเข้ามา
-	pPadding.PaddingTop = UDim.new(0, 20)
-	pPadding.PaddingBottom = UDim.new(0, 10)
+	local pagePadding = Instance.new("UIPadding", page)
+	pagePadding.PaddingLeft = UDim.new(0, 25) -- เพิ่มระยะห่าง
+	pagePadding.PaddingRight = UDim.new(0, 20) -- ลดขวาลงนิดนึงเพราะ Scrollbar ลอยเข้ามา
+	pagePadding.PaddingTop = UDim.new(0, 20)
+	pagePadding.PaddingBottom = UDim.new(0, 10)
 	
 	-- Tab Header (Fixed at top)
 	local headFrame = Instance.new("Frame", container)
@@ -603,10 +624,10 @@ function Library:CreateTab(name, subtitle, iconName)
 	headFrame.BackgroundTransparency = 1
 	Instance.new("UIPadding", headFrame).PaddingLeft = UDim.new(0, 25)
 	
-	local hLayout = Instance.new("UIListLayout", headFrame)
-	hLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	hLayout.Padding = UDim.new(0, 0)
-
+	local headerLayout = Instance.new("UIListLayout", headFrame)
+	headerLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	headerLayout.Padding = UDim.new(0, 0)
+	
 	local title = Instance.new("TextLabel", headFrame)
 	title.Text = name
 	title.Size = UDim2.new(1, 0, 0, 25)
@@ -643,15 +664,15 @@ function Library:CreateTab(name, subtitle, iconName)
 	window:AddThemeObject(page, {ScrollBarImageColor3 = "ScrollBar"})
 
 	-- Scrollbar Fade & Divider Logic
-	local cFade
+	local contentFadeTween
 	page:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
 		-- Show divider when scrolling
 		divider.BackgroundTransparency = (page.CanvasPosition.Y > 5) and 0 or 1
 
-		if cFade then cFade:Cancel() end
+		if contentFadeTween then contentFadeTween:Cancel() end
 		page.ScrollBarImageTransparency = 0.7
-		cFade = TweenService:Create(page, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.5), {ScrollBarImageTransparency = 1})
-		cFade:Play()
+		contentFadeTween = TweenService:Create(page, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.5), {ScrollBarImageTransparency = 1})
+		contentFadeTween:Play()
 	end)
 
 	local function selectThis()
@@ -696,17 +717,17 @@ function Library:CreateTab(name, subtitle, iconName)
 
 	local function updateGroupSeparators(group)
 		local frames = {}
-		for _, c in ipairs(group:GetChildren()) do
-			if c:IsA("Frame") or c:IsA("TextButton") then
-				table.insert(frames, c)
+		for _, child in ipairs(group:GetChildren()) do
+			if child:IsA("Frame") or child:IsA("TextButton") then
+				table.insert(frames, child)
 			end
 		end
 		table.sort(frames, function(a, b) return a.LayoutOrder < b.LayoutOrder end)
 		
-		for i, f in ipairs(frames) do
-			local sep = f:FindFirstChild("Separator")
-			if sep then
-				sep.Visible = (i < #frames)
+		for i, frame in ipairs(frames) do
+			local separator = frame:FindFirstChild("Separator")
+			if separator then
+				separator.Visible = (i < #frames)
 			end
 		end
 	end
@@ -746,8 +767,6 @@ function Library:CreateTab(name, subtitle, iconName)
 		currentGroup = nil
 	end
 
-	local elementCount = 0
-
 	function Elements:Button(options)
 		local text = options.Title or "Button"
 		local callback = options.Callback or function() end
@@ -786,12 +805,12 @@ function Library:CreateTab(name, subtitle, iconName)
 		arrow.TextSize = 16
 		window:AddThemeObject(arrow, {TextColor3 = "TextSub"})
 
-		local sep = Instance.new("Frame", frame)
-		sep.Name = "Separator"
-		sep.Size = UDim2.new(1, 0, 0, 1)
-		sep.Position = UDim2.new(0, 0, 1, -1)
-		sep.BorderSizePixel = 0
-		window:AddThemeObject(sep, {BackgroundColor3 = "Stroke"})
+		local separator = Instance.new("Frame", frame)
+		separator.Name = "Separator"
+		separator.Size = UDim2.new(1, 0, 0, 1)
+		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.BorderSizePixel = 0
+		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		window:AddThemeObject(btn, {
 			TextColor3 = "Text"
@@ -856,12 +875,12 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		local active = default
 		
-		local sep = Instance.new("Frame", frame)
-		sep.Name = "Separator"
-		sep.Size = UDim2.new(1, 0, 0, 1)
-		sep.Position = UDim2.new(0, 0, 1, -1)
-		sep.BorderSizePixel = 0
-		window:AddThemeObject(sep, {BackgroundColor3 = "Stroke"})
+		local separator = Instance.new("Frame", frame)
+		separator.Name = "Separator"
+		separator.Size = UDim2.new(1, 0, 0, 1)
+		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.BorderSizePixel = 0
+		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
 		window:AddThemeObject(label, {TextColor3 = "Text"})
@@ -970,12 +989,12 @@ function Library:CreateTab(name, subtitle, iconName)
 		Instance.new("UICorner", knobVisual).CornerRadius = UDim.new(1, 0)
 		local knobStroke = Instance.new("UIStroke", knobVisual)
 
-		local sep = Instance.new("Frame", frame)
-		sep.Name = "Separator"
-		sep.Size = UDim2.new(1, 0, 0, 1)
-		sep.Position = UDim2.new(0, 0, 1, -1)
-		sep.BorderSizePixel = 0
-		window:AddThemeObject(sep, {BackgroundColor3 = "Stroke"})
+		local separator = Instance.new("Frame", frame)
+		separator.Name = "Separator"
+		separator.Size = UDim2.new(1, 0, 0, 1)
+		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.BorderSizePixel = 0
+		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
 		window:AddThemeObject(label, {TextColor3 = "Text"})
@@ -1094,12 +1113,12 @@ function Library:CreateTab(name, subtitle, iconName)
 		downBtn.TextSize = 10
 		downBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- สีขาว
 
-		local sep = Instance.new("Frame", frame)
-		sep.Name = "Separator"
-		sep.Size = UDim2.new(1, 0, 0, 1)
-		sep.Position = UDim2.new(0, 0, 1, -1)
-		sep.BorderSizePixel = 0
-		window:AddThemeObject(sep, {BackgroundColor3 = "Stroke"})
+		local separator = Instance.new("Frame", frame)
+		separator.Name = "Separator"
+		separator.Size = UDim2.new(1, 0, 0, 1)
+		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.BorderSizePixel = 0
+		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
 		window:AddThemeObject(label, {TextColor3 = "Text"})
@@ -1203,12 +1222,12 @@ function Library:CreateTab(name, subtitle, iconName)
             label.TextColor3 = window.CurrentTheme.Text
 
             if i < #values then
-                local sep = Instance.new("Frame", btn)
-                sep.Size = UDim2.new(1, 0, 0, 1)
-                sep.Position = UDim2.new(0, 0, 1, -1)
-                sep.BorderSizePixel = 0
-                sep.BackgroundColor3 = window.CurrentTheme.Stroke
-                sep.BackgroundTransparency = 0.7
+                local itemSeparator = Instance.new("Frame", btn)
+                itemSeparator.Size = UDim2.new(1, 0, 0, 1)
+                itemSeparator.Position = UDim2.new(0, 0, 1, -1)
+                itemSeparator.BorderSizePixel = 0
+                itemSeparator.BackgroundColor3 = window.CurrentTheme.Stroke
+                itemSeparator.BackgroundTransparency = 0.7
             end
 
             btn.MouseEnter:Connect(function()
@@ -1285,32 +1304,32 @@ function Library:CreateTab(name, subtitle, iconName)
 		frame.LayoutOrder = elementCount
 		frame.Size = UDim2.new(1, 0, 0, 40)
 		frame.BackgroundTransparency = 1
-		
-		local hLabel = Instance.new("TextLabel", frame)
-		hLabel.Text = head
-		hLabel.Size = UDim2.new(1, 0, 0, 20)
-		hLabel.Font = Enum.Font.GothamBold
-		hLabel.TextSize = headSize
-		hLabel.TextXAlignment = Enum.TextXAlignment.Left
-		hLabel.BackgroundTransparency = 1
-		
-		local padding = Instance.new("UIPadding", hLabel)
+
+		local headLabel = Instance.new("TextLabel", frame)
+		headLabel.Text = head
+		headLabel.Size = UDim2.new(1, 0, 0, 20)
+		headLabel.Font = Enum.Font.GothamBold
+		headLabel.TextSize = headSize
+		headLabel.TextXAlignment = Enum.TextXAlignment.Left
+		headLabel.BackgroundTransparency = 1
+
+		local padding = Instance.new("UIPadding", headLabel)
 		if icon then
 			window:CreateIcon(frame, icon, UDim2.new(0, 0, 0, 10))
 			padding.PaddingLeft = UDim.new(0, 25)
 		end
 
-		local bLabel = Instance.new("TextLabel", frame)
-		bLabel.Text = body
-		bLabel.Size = UDim2.new(1, 0, 0, 15)
-		bLabel.Position = UDim2.fromOffset(0, 20)
-		bLabel.Font = Enum.Font.Gotham
-		bLabel.TextSize = bodySize
-		bLabel.TextXAlignment = Enum.TextXAlignment.Left
-		bLabel.BackgroundTransparency = 1
+		local bodyLabel = Instance.new("TextLabel", frame)
+		bodyLabel.Text = body
+		bodyLabel.Size = UDim2.new(1, 0, 0, 15)
+		bodyLabel.Position = UDim2.fromOffset(0, 20)
+		bodyLabel.Font = Enum.Font.Gotham
+		bodyLabel.TextSize = bodySize
+		bodyLabel.TextXAlignment = Enum.TextXAlignment.Left
+		bodyLabel.BackgroundTransparency = 1
 
-		window:AddThemeObject(hLabel, {TextColor3 = "Text"})
-		window:AddThemeObject(bLabel, {TextColor3 = "TextSub"})
+		window:AddThemeObject(headLabel, {TextColor3 = "Text"})
+		window:AddThemeObject(bodyLabel, {TextColor3 = "TextSub"})
 	end
 
 	function Elements:Popup(options)
@@ -1336,12 +1355,12 @@ function Library:CreateTab(name, subtitle, iconName)
 			padding.PaddingLeft = UDim.new(0, 40)
 		end
 		
-		local sep = Instance.new("Frame", btn)
-		sep.Name = "Separator"
-		sep.Size = UDim2.new(1, 0, 0, 1)
-		sep.Position = UDim2.new(0, 0, 1, -1)
-		sep.BorderSizePixel = 0
-		window:AddThemeObject(sep, {BackgroundColor3 = "Stroke"})
+		local separator = Instance.new("Frame", btn)
+		separator.Name = "Separator"
+		separator.Size = UDim2.new(1, 0, 0, 1)
+		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.BorderSizePixel = 0
+		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		btn.BackgroundTransparency = 1
 		window:AddThemeObject(btn, {
@@ -1395,12 +1414,12 @@ function Library:CreateTab(name, subtitle, iconName)
 		local key = default
 		local listening = false
 
-		local sep = Instance.new("Frame", frame)
-		sep.Name = "Separator"
-		sep.Size = UDim2.new(1, 0, 0, 1)
-		sep.Position = UDim2.new(0, 0, 1, -1)
-		sep.BorderSizePixel = 0
-		window:AddThemeObject(sep, {BackgroundColor3 = "Stroke"})
+		local separator = Instance.new("Frame", frame)
+		separator.Name = "Separator"
+		separator.Size = UDim2.new(1, 0, 0, 1)
+		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.BorderSizePixel = 0
+		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
 		window:AddThemeObject(label, {TextColor3 = "Text"})
@@ -1468,12 +1487,12 @@ function Library:CreateTab(name, subtitle, iconName)
 		input.BackgroundTransparency = 1
 		Instance.new("UIPadding", input).PaddingLeft = UDim.new(0, 10)
 
-		local sep = Instance.new("Frame", frame)
-		sep.Name = "Separator"
-		sep.Size = UDim2.new(1, 0, 0, 1)
-		sep.Position = UDim2.new(0, 0, 1, -1)
-		sep.BorderSizePixel = 0
-		window:AddThemeObject(sep, {BackgroundColor3 = "Stroke"})
+		local separator = Instance.new("Frame", frame)
+		separator.Name = "Separator"
+		separator.Size = UDim2.new(1, 0, 0, 1)
+		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.BorderSizePixel = 0
+		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
 		window:AddThemeObject(label, {TextColor3 = "Text"})
