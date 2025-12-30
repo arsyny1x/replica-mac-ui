@@ -37,6 +37,7 @@ function Library.CreateWindow(options)
 	self.ScreenGui.ResetOnSpawn = false
 	self.ScreenGui.IgnoreGuiInset = true
 	self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	self.ScreenGui.DisplayOrder = 10000
 	self.ScreenGui.Parent = playerGui
 
 	self.Container = Instance.new("Frame")
@@ -491,23 +492,6 @@ function Library.CreateWindow(options)
 		btn.MouseButton1Click:Connect(action)
 	end
 
-	makeDot(Color3.fromRGB(255, 95, 87), function() 
-		self:ShowPopup("Close Window", "Are you sure you want to close?", function() self.ScreenGui:Destroy() end)
-	end)
-	-- Yellow: Maximize / Restore
-	makeDot(Color3.fromRGB(255, 189, 46), function()
-		if self.IsMaximized then
-			TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = self.PreMaxSize, Position = self.PreMaxPos}):Play()
-			self.IsMaximized = false
-		else
-			self.PreMaxSize = self.Main.Size
-			self.PreMaxPos = self.Main.Position
-			self.IsMaximized = true
-			local scaleMult = 1 / self.Scale
-			TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(scaleMult, -40, scaleMult, -40), Position = UDim2.fromScale(0.5, 0.5)}):Play()
-		end
-	end)
-
 	-- Dock System (Top Center)
 	self.Dock = Instance.new("TextButton")
 	self.Dock.Name = "Dock"
@@ -564,12 +548,6 @@ function Library.CreateWindow(options)
 	self.Dock.MouseButton1Click:Connect(function()
 		self.Dock.Visible = false
 		self.Main.Visible = true
-	end)
-
-	-- Green: Minimize to Dock
-	makeDot(Color3.fromRGB(40, 201, 64), function() 
-		self.Main.Visible = false
-		self.Dock.Visible = true
 	end)
 
 	-- Dragging Logic
@@ -717,6 +695,39 @@ function Library.CreateWindow(options)
 		end
 	end)
 
+	-- Sync Visibility (External Elements)
+	local function syncVisibility()
+		local visible = self.Main.Visible
+		shadow.Visible = visible
+		dragBar.Visible = visible and not self.IsMaximized
+		resizeHandle.Visible = visible and not self.IsMaximized
+	end
+	self.Main:GetPropertyChangedSignal("Visible"):Connect(syncVisibility)
+	
+	makeDot(Color3.fromRGB(255, 95, 87), function() 
+		self:ShowPopup("Close Window", "Are you sure you want to close?", function() self.ScreenGui:Destroy() end)
+	end)
+	-- Yellow: Maximize / Restore
+	makeDot(Color3.fromRGB(255, 189, 46), function()
+		if self.IsMaximized then
+			TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = self.PreMaxSize, Position = self.PreMaxPos}):Play()
+			self.IsMaximized = false
+		else
+			self.PreMaxSize = self.Main.Size
+			self.PreMaxPos = self.Main.Position
+			self.IsMaximized = true
+			local scaleMult = 1 / self.Scale
+			TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(scaleMult, -40, scaleMult, -40), Position = UDim2.fromScale(0.5, 0.5)}):Play()
+		end
+		syncVisibility()
+	end)
+
+	-- Green: Minimize to Dock
+	makeDot(Color3.fromRGB(40, 201, 64), function() 
+		self.Main.Visible = false
+		self.Dock.Visible = true
+	end)
+
 	-- Sync Shadow Position & Size
 	local function syncShadow()
 		shadow.Position = self.Main.Position
@@ -727,15 +738,6 @@ function Library.CreateWindow(options)
 	self.Main:GetPropertyChangedSignal("Position"):Connect(syncShadow)
 	self.Main:GetPropertyChangedSignal("Size"):Connect(syncShadow)
 	syncShadow()
-
-	-- Sync Visibility (External Elements)
-	local function syncVisibility()
-		local visible = self.Main.Visible
-		shadow.Visible = visible
-		dragBar.Visible = visible
-		resizeHandle.Visible = visible
-	end
-	self.Main:GetPropertyChangedSignal("Visible"):Connect(syncVisibility)
 
 	-- Apply Initial Theme
 	self:AddThemeObject(self.Main, {BackgroundColor3 = "Main"})
