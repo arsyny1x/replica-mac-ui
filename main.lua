@@ -28,17 +28,37 @@ function Library.CreateWindow(options)
 	local title = options.Title or "MacFinderLib"
 	local size = options.Size or UDim2.fromOffset(650, 450)
 	local theme = options.Theme or "Light"
-	local position = options.Position or UDim2.new(0.5, -size.X.Offset/2, 0.5, -size.Y.Offset/2)
-	local toggleKey = options.ToggleKey or Enum.KeyCode.RightControl
+	local position = options.Position or UDim2.fromScale(0.5, 0.5)
+	local dockIcon = options.DockIcon or "external-link"
 	
 	-- Root
 	self.ScreenGui = Instance.new("ScreenGui")
 	self.ScreenGui.Name = "MacFinderLib"
 	self.ScreenGui.ResetOnSpawn = false
+	self.ScreenGui.IgnoreGuiInset = true
 	self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	self.ScreenGui.Parent = playerGui
 
+	self.Container = Instance.new("Frame")
+	self.Container.Name = "Container"
+	self.Container.Size = UDim2.fromScale(1, 1)
+	self.Container.Position = UDim2.fromScale(0.5, 0.5)
+	self.Container.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.Container.BackgroundTransparency = 1
+	self.Container.Parent = self.ScreenGui
+	self.Scale = 1
+
+	if UserInputService.TouchEnabled then
+		local uiScale = Instance.new("UIScale")
+		uiScale.Scale = 0.7
+		uiScale.Parent = self.Container
+		self.Scale = 0.7
+	end
+
 	self.IsMinimized = false
+	self.IsMaximized = false
+	self.PreMaxSize = size
+	self.PreMaxPos = position
 	self.OriginalSize = size
 
 	-- Config System
@@ -75,16 +95,17 @@ function Library.CreateWindow(options)
 	-- Theme System
 	self.Themes = {
 		Light = {
-			Main = Color3.fromRGB(242, 242, 242),
-			Sidebar = Color3.fromRGB(230, 230, 230),
-			Text = Color3.fromRGB(40, 40, 40),
-			TextSub = Color3.fromRGB(80, 80, 80),
+			Main = Color3.fromRGB(246, 246, 246),    
+			Sidebar = Color3.fromRGB(240, 240, 240), 
+			Text = Color3.fromRGB(0, 0, 0),          
+			TextSub = Color3.fromRGB(80, 80, 80),    
 			ElementBG = Color3.fromRGB(255, 255, 255),
-			Accent = Color3.fromRGB(0, 122, 255),
-			Stroke = Color3.fromRGB(170, 170, 170),
-			TextBtn = Color3.fromRGB(255, 255, 255),
-			ToggleInactive = Color3.fromRGB(200, 200, 200),
-			ScrollBar = Color3.fromRGB(120, 120, 120)
+			Accent = Color3.fromRGB(0, 122, 255),     
+			Stroke = Color3.fromRGB(200, 200, 200), 
+			TextBtn = Color3.fromRGB(255, 255, 255), 
+			ToggleInactive = Color3.fromRGB(220, 220, 220), 
+			ScrollBar = Color3.fromRGB(180, 180, 180),
+			ButtomDrag = Color3.fromRGB(225, 223, 225)
 		},
 		Dark = {
 			Main = Color3.fromRGB(30, 30, 30),
@@ -96,7 +117,8 @@ function Library.CreateWindow(options)
 			Stroke = Color3.fromRGB(60, 60, 60),
 			TextBtn = Color3.fromRGB(255, 255, 255),
 			ToggleInactive = Color3.fromRGB(60, 60, 60),
-			ScrollBar = Color3.fromRGB(120, 120, 120)
+			ScrollBar = Color3.fromRGB(120, 120, 120),
+			ButtomDrag = Color3.fromRGB(225, 223, 225)
 		},
 		Purple = {
 			Main = Color3.fromRGB(35, 30, 45),
@@ -108,7 +130,8 @@ function Library.CreateWindow(options)
 			Stroke = Color3.fromRGB(70, 60, 90),
 			TextBtn = Color3.fromRGB(255, 255, 255),
 			ToggleInactive = Color3.fromRGB(70, 60, 90),
-			ScrollBar = Color3.fromRGB(140, 120, 160)
+			ScrollBar = Color3.fromRGB(140, 120, 160),
+			DragBar = Color3.fromRGB(225, 223, 225)
 		}
 	}
 	self.ThemeObjects = {}
@@ -122,12 +145,12 @@ function Library.CreateWindow(options)
 	self.Main.Name = "Main"
 	self.Main.Size = self.OriginalSize
 	self.Main.Position = position
-	self.Main.AnchorPoint = Vector2.new(0, 0)
-	self.Main.ClipsDescendants = true
+	self.Main.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.Main.Parent = self.ScreenGui
+	self.Main.Parent = self.Container
 	
 	local mainCorner = Instance.new("UICorner")
-	mainCorner.CornerRadius = UDim.new(0, 14) -- เพิ่มความมน
+	mainCorner.CornerRadius = UDim.new(0, 14) 
 	mainCorner.Parent = self.Main
 
 	local mainStroke = Instance.new("UIStroke")
@@ -137,9 +160,8 @@ function Library.CreateWindow(options)
 	-- Shadow (Floating Effect)
 	local shadow = Instance.new("ImageLabel")
 	shadow.Name = "Shadow"
-	shadow.AnchorPoint = Vector2.new(0, 0)
+	shadow.AnchorPoint = Vector2.new(0.5, 0.5)
 	shadow.BackgroundTransparency = 1
-	shadow.Image = "rbxassetid://6014261993"
 	shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 	shadow.ImageTransparency = 0.4
 	shadow.SliceCenter = Rect.new(49, 49, 450, 450)
@@ -147,6 +169,7 @@ function Library.CreateWindow(options)
 	shadow.SliceScale = 1
 	shadow.ZIndex = self.Main.ZIndex - 1
 	shadow.Parent = self.ScreenGui
+	shadow.Parent = self.Container
 
 	-- Header Area (Drag Zone)
 	self.Header = Instance.new("Frame")
@@ -263,7 +286,7 @@ function Library.CreateWindow(options)
 
 	-- Traffic Lights 
 	local traffic = Instance.new("Frame")
-	traffic.Size = UDim2.fromOffset(90, 55)
+	traffic.Size = UDim2.fromOffset(90, 60)
 	traffic.Position = UDim2.fromOffset(18, 0)
 	traffic.BackgroundTransparency = 1
 	traffic.ZIndex = 10
@@ -271,12 +294,13 @@ function Library.CreateWindow(options)
 	
 	local tLayout = Instance.new("UIListLayout", traffic)
 	tLayout.FillDirection = Enum.FillDirection.Horizontal
-	tLayout.Padding = UDim.new(0, 10) -- ระยะห่างระหว่างปุ่ม
+	tLayout.Padding = UDim.new(0, 13) -- ระยะห่างระหว่างปุ่ม
 	tLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 
 	-- Popup System
 	function self:ShowPopup(titleText, msgText, onConfirm)
 		local overlay = Instance.new("Frame", self.ScreenGui)
+		local overlay = Instance.new("Frame", self.Container)
 		overlay.Name = "PopupOverlay"
 		overlay.Size = UDim2.fromScale(1, 1)
 		overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -334,7 +358,7 @@ function Library.CreateWindow(options)
 			return btn
 		end
 
-		local yes = createBtn("Confirm", Color3.fromRGB(255, 59, 48), onConfirm)
+		local yes = createBtn("Confirm", Color3.fromRGB(0, 122, 255), onConfirm)
 		yes.Position = UDim2.new(0.5, 5, 1, -40)
 		
 		local no = createBtn("Cancel", Color3.fromRGB(180, 180, 180), nil)
@@ -346,6 +370,7 @@ function Library.CreateWindow(options)
 	-- Selection Popup System (Dropdown)
 	function self:ShowSelection(titleText, options, callback)
 		local overlay = Instance.new("Frame", self.ScreenGui)
+		local overlay = Instance.new("Frame", self.Container)
 		overlay.Name = "SelectionOverlay"
 		overlay.Size = UDim2.fromScale(1, 1)
 		overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -401,6 +426,7 @@ function Library.CreateWindow(options)
 
 	-- Notification System
 	local notifyHolder = Instance.new("Frame", self.ScreenGui)
+	local notifyHolder = Instance.new("Frame", self.Container)
 	notifyHolder.Name = "Notifications"
 	notifyHolder.Size = UDim2.new(0, 250, 1, -20)
 	notifyHolder.Position = UDim2.new(1, -270, 0, 10)
@@ -468,59 +494,224 @@ function Library.CreateWindow(options)
 	makeDot(Color3.fromRGB(255, 95, 87), function() 
 		self:ShowPopup("Close Window", "Are you sure you want to close?", function() self.ScreenGui:Destroy() end)
 	end)
+	-- Yellow: Maximize / Restore
 	makeDot(Color3.fromRGB(255, 189, 46), function()
-		self.IsMinimized = not self.IsMinimized
-		local targetSize = self.IsMinimized and UDim2.fromOffset(180, 55) or self.OriginalSize
-		TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+		if self.IsMaximized then
+			TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = self.PreMaxSize, Position = self.PreMaxPos}):Play()
+			self.IsMaximized = false
+		else
+			self.PreMaxSize = self.Main.Size
+			self.PreMaxPos = self.Main.Position
+			self.IsMaximized = true
+			local scaleMult = 1 / self.Scale
+			TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(scaleMult, -40, scaleMult, -40), Position = UDim2.fromScale(0.5, 0.5)}):Play()
+		end
 	end)
-	makeDot(Color3.fromRGB(40, 201, 64), function() end)
+
+	-- Dock System (Top Center)
+	self.Dock = Instance.new("TextButton")
+	self.Dock.Name = "Dock"
+	self.Dock.Text = ""
+	self.Dock.AutomaticSize = Enum.AutomaticSize.X
+	self.Dock.Size = UDim2.fromOffset(0, 32)
+	self.Dock.Position = UDim2.new(0.5, 0, 0, 2)
+	self.Dock.AnchorPoint = Vector2.new(0.5, 0)
+	self.Dock.BackgroundColor3 = self.CurrentTheme.Main
+	self.Dock.Visible = false
+	self.Dock.Parent = self.ScreenGui -- Parent to ScreenGui to avoid container scaling issues
+	self.Dock.ZIndex = 300
+	
+	local dockLayout = Instance.new("UIListLayout", self.Dock)
+	dockLayout.FillDirection = Enum.FillDirection.Horizontal
+	dockLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	dockLayout.Padding = UDim.new(0, 10)
+	
+	local dockPadding = Instance.new("UIPadding", self.Dock)
+	dockPadding.PaddingLeft = UDim.new(0, 12)
+	dockPadding.PaddingRight = UDim.new(0, 12)
+
+	local dockCorner = Instance.new("UICorner", self.Dock)
+	dockCorner.CornerRadius = UDim.new(1, 0)
+	
+	local dockStroke = Instance.new("UIStroke", self.Dock)
+	dockStroke.Color = self.CurrentTheme.Stroke
+	dockStroke.Transparency = 0
+	dockStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	self:AddThemeObject(self.Dock, {BackgroundColor3 = "Main"})
+	self:AddThemeObject(dockStroke, {Color = "Stroke"})
+
+	local dIcon = self:CreateIcon(self.Dock, dockIcon, UDim2.fromScale(0,0))
+	if dIcon then dIcon.LayoutOrder = 1 end
+
+	local dockSeparator = Instance.new("Frame", self.Dock)
+	dockSeparator.Name = "Separator"
+	dockSeparator.Size = UDim2.new(0, 1, 0, 20)
+	dockSeparator.BorderSizePixel = 0
+	dockSeparator.LayoutOrder = 2
+	self:AddThemeObject(dockSeparator, {BackgroundColor3 = "Stroke"})
+
+	local dockLabel = Instance.new("TextLabel", self.Dock)
+	dockLabel.AutomaticSize = Enum.AutomaticSize.X
+	dockLabel.Size = UDim2.new(0, 0, 1, 0)
+	dockLabel.BackgroundTransparency = 1
+	dockLabel.Text = title
+	dockLabel.Font = Enum.Font.GothamBold
+	dockLabel.TextSize = 14
+	dockLabel.TextXAlignment = Enum.TextXAlignment.Left
+	dockLabel.LayoutOrder = 3
+	self:AddThemeObject(dockLabel, {TextColor3 = "Text"})
+
+	self.Dock.MouseButton1Click:Connect(function()
+		self.Dock.Visible = false
+		self.Main.Visible = true
+	end)
+
+	-- Green: Minimize to Dock
+	makeDot(Color3.fromRGB(40, 201, 64), function() 
+		self.Main.Visible = false
+		self.Dock.Visible = true
+	end)
 
 	-- Dragging Logic
 	local dragging, dragStart, startPos
 	self.Header.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
 			startPos = self.Main.Position
 		end
 	end)
 
-	-- Resizing Logic (Fixed)
-	local resizer = Instance.new("ImageLabel", self.Main)
-	resizer.Name = "Resizer"
-	resizer.Size = UDim2.fromOffset(16, 16)
-	resizer.Position = UDim2.new(1, -16, 1, -16)
-	resizer.BackgroundTransparency = 1
-	resizer.Image = "rbxassetid://12752150117"
-	resizer.ZIndex = 15
+	-- Bottom Drag Bar (External)
+	local dragBar = Instance.new("Frame", self.Container)
+	dragBar.Name = "DragBar"
+	dragBar.Size = UDim2.fromOffset(200, 4)
+	dragBar.AnchorPoint = Vector2.new(0.5, 0)
+	dragBar.BackgroundColor3 = self.CurrentTheme.ButtomDrag
+	dragBar.BackgroundTransparency = 0.3
+	dragBar.ZIndex = 25
+	Instance.new("UICorner", dragBar).CornerRadius = UDim.new(1, 0)
+	self:AddThemeObject(dragBar, {BackgroundColor3 = "ButtomDrag"})
+
+	dragBar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = self.Main.Position
+		end
+	end)
+
+	-- Resize Borders (เส้นขอบสำหรับย่อขยาย)
+	local resizeRight = Instance.new("Frame", self.Main)
+	resizeRight.Name = "ResizeRight"
+	resizeRight.Size = UDim2.new(0, 10, 1, -20)
+	resizeRight.Position = UDim2.new(1, -10, 0, 0)
+	resizeRight.BackgroundTransparency = 1
+	resizeRight.ZIndex = 20
+
+	local resizeBottom = Instance.new("Frame", self.Main)
+	resizeBottom.Name = "ResizeBottom"
+	resizeBottom.Size = UDim2.new(1, -20, 0, 10)
+	resizeBottom.Position = UDim2.new(0, 0, 1, -10)
+	resizeBottom.BackgroundTransparency = 1
+	resizeBottom.ZIndex = 20
+
+	-- Resize Handle (External)
+	local resizeHandle = Instance.new("Frame", self.Container)
+	resizeHandle.Name = "ResizeHandle"
+	resizeHandle.Position = UDim2.new(0, 0, 0, 0) -- Synced in syncShadow
+	resizeHandle.AnchorPoint = Vector2.new(1, 1)
+	resizeHandle.BackgroundTransparency = 1
+	resizeHandle.ZIndex = 200
+	resizeHandle.Size = UDim2.fromOffset(20, 20) -- Interaction area
+
+	local arcContainer = Instance.new("Frame", resizeHandle)
+	arcContainer.Name = "ArcContainer"
+	arcContainer.Size = UDim2.fromOffset(30, 30)
+	arcContainer.Position = UDim2.fromOffset(2, 2)
+	arcContainer.AnchorPoint = Vector2.new(0, 0)
+	arcContainer.BackgroundTransparency = 1
+	arcContainer.ClipsDescendants = true
+
+	local arcCircle = Instance.new("Frame", arcContainer)
+	arcCircle.Name = "ArcCircle"
+	arcCircle.Size = UDim2.fromOffset(30, 30)
+	arcCircle.Position = UDim2.fromOffset(-13, -13)
+	arcCircle.BackgroundTransparency = 1
+	Instance.new("UICorner", arcCircle).CornerRadius = UDim.new(1, 0)
+
+	local arcStroke = Instance.new("UIStroke", arcCircle)
+	arcStroke.Thickness = 4
+	arcStroke.Color = self.CurrentTheme.ButtomDrag
+	arcStroke.Transparency = 0.3
+	self:AddThemeObject(arcStroke, {Color = "ButtomDrag"})
 
 	local resizing = false
+	local resizeDir = "Both" -- Both, X, Y
 	local rStartSize, rStartPos
-	resizer.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			resizing = true
-			rStartPos = input.Position
-			rStartSize = self.Main.AbsoluteSize
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then resizing = false end
-			end)
+	local currentResizeInput
+
+	local function startResize(input, dir)
+		resizing = true
+		currentResizeInput = input
+		resizeDir = dir or "Both"
+		rStartPos = input.Position
+		rStartSize = self.Main.Size
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End and input == currentResizeInput then 
+				resizing = false 
+				currentResizeInput = nil
+			end
+		end)
+	end
+
+	resizeHandle.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			startResize(input, "Both")
+		end
+	end)
+
+	resizeRight.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			startResize(input, "X")
+		end
+	end)
+
+	resizeBottom.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			startResize(input, "Y")
 		end
 	end)
 
 	UserInputService.InputChanged:Connect(function(input)
-		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
 			self.Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-		elseif resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
-			local delta = input.Position - rStartPos
-			local newSize = UDim2.fromOffset(math.max(450, rStartSize.X + delta.X), math.max(300, rStartSize.Y + delta.Y))
-			self.Main.Size = newSize
-			self.OriginalSize = newSize
+		elseif resizing then
+			local isTouch = currentResizeInput.UserInputType == Enum.UserInputType.Touch
+			local isValid = (isTouch and input == currentResizeInput) or (not isTouch and input.UserInputType == Enum.UserInputType.MouseMovement)
+			
+			if isValid then
+				local delta = (input.Position - rStartPos) / self.Scale
+				local newX = rStartSize.X.Offset
+				local newY = rStartSize.Y.Offset
+				
+				if resizeDir == "Both" or resizeDir == "X" then
+					newX = math.max(450, newX + delta.X)
+				end
+				if resizeDir == "Both" or resizeDir == "Y" then
+					newY = math.max(300, newY + delta.Y)
+				end
+
+				local newSize = UDim2.fromOffset(newX, newY)
+				self.Main.Size = newSize
+				self.OriginalSize = newSize
+			end
 		end
 	end)
 
 	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = false
 			resizing = false
 		end
@@ -528,12 +719,23 @@ function Library.CreateWindow(options)
 
 	-- Sync Shadow Position & Size
 	local function syncShadow()
-		shadow.Position = self.Main.Position + UDim2.fromOffset(-20, -16)
+		shadow.Position = self.Main.Position
 		shadow.Size = self.Main.Size + UDim2.fromOffset(40, 40)
+		dragBar.Position = self.Main.Position + UDim2.new(0, 0, 0, self.Main.Size.Y.Offset / 2 + 6)
+		resizeHandle.Position = self.Main.Position + UDim2.new(0, self.Main.Size.X.Offset / 2 + 6, 0, self.Main.Size.Y.Offset / 2 + 6)
 	end
 	self.Main:GetPropertyChangedSignal("Position"):Connect(syncShadow)
 	self.Main:GetPropertyChangedSignal("Size"):Connect(syncShadow)
 	syncShadow()
+
+	-- Sync Visibility (External Elements)
+	local function syncVisibility()
+		local visible = self.Main.Visible
+		shadow.Visible = visible
+		dragBar.Visible = visible
+		resizeHandle.Visible = visible
+	end
+	self.Main:GetPropertyChangedSignal("Visible"):Connect(syncVisibility)
 
 	-- Apply Initial Theme
 	self:AddThemeObject(self.Main, {BackgroundColor3 = "Main"})
@@ -541,7 +743,6 @@ function Library.CreateWindow(options)
 	self:AddThemeObject(sidebarSeparator, {BackgroundColor3 = "Stroke"})
 	self:AddThemeObject(sbHeader, {BackgroundColor3 = "Sidebar"})
 	self:AddThemeObject(self.Sidebar, {BackgroundColor3 = "Sidebar", ScrollBarImageColor3 = "ScrollBar"})
-	self:AddThemeObject(resizer, {ImageColor3 = "TextSub"})
 
 	-- Global Keybind Listener
 	UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -820,6 +1021,10 @@ function Library:CreateTab(name, subtitle, iconName)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 				local x = input.Position.X - btn.AbsolutePosition.X
 				local y = input.Position.Y - btn.AbsolutePosition.Y
+				if window.Scale and window.Scale ~= 1 then
+					x = x / window.Scale
+					y = y / window.Scale
+				end
 				createRipple(btn, x, y)
 			end
 		end)
@@ -954,7 +1159,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		sliderContainer.BackgroundTransparency = 1
 
 		local bar = Instance.new("Frame", sliderContainer)
-		bar.Size = UDim2.new(1, -30, 0, 4) -- เพิ่มระยะห่างขอบไม่ให้หลุด
+		bar.Size = UDim2.new(1, -20, 0, 5) 
 		bar.Position = UDim2.fromScale(0.5, 0.5)
 		bar.AnchorPoint = Vector2.new(0.5, 0.5)
 		Instance.new("UICorner", bar)
@@ -1088,14 +1293,14 @@ function Library:CreateTab(name, subtitle, iconName)
 		valueBtn.Font = Enum.Font.Gotham
 		valueBtn.TextSize = 14
 		Instance.new("UICorner", valueBtn).CornerRadius = UDim.new(0, 6)
-		Instance.new("UIPadding", valueBtn).PaddingRight = UDim.new(0, 35) -- เว้นที่ให้ปุ่ม Selector ด้านใน
+		Instance.new("UIPadding", valueBtn).PaddingRight = UDim.new(0, 35)
 
 		-- Selector Box (Arrows)
-		local arrowBox = Instance.new("Frame", valueBtn) -- ย้ายเข้าไปข้างใน valueBtn
+		local arrowBox = Instance.new("Frame", valueBtn) 
 		arrowBox.Size = UDim2.new(0, 20, 0, 20)
 		arrowBox.Position = UDim2.new(1.19, 0, 0.5, 0)
 		arrowBox.AnchorPoint = Vector2.new(1, 0.5)
-		arrowBox.BackgroundColor3 = window.CurrentTheme.Accent -- สีฟ้า
+		arrowBox.BackgroundColor3 = window.CurrentTheme.Accent 
 		Instance.new("UICorner", arrowBox).CornerRadius = UDim.new(0, 4)
 
 		local upBtn = Instance.new("TextButton", arrowBox)
@@ -1103,7 +1308,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		upBtn.BackgroundTransparency = 1
 		upBtn.Text = "▲"
 		upBtn.TextSize = 10
-		upBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- สีขาว
+		upBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
 
 		local downBtn = Instance.new("TextButton", arrowBox)
 		downBtn.Size = UDim2.new(1, 0, 0.5, 0)
@@ -1111,7 +1316,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		downBtn.BackgroundTransparency = 1
 		downBtn.Text = "▼"
 		downBtn.TextSize = 10
-		downBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- สีขาว
+		downBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
 
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
@@ -1139,6 +1344,7 @@ function Library:CreateTab(name, subtitle, iconName)
         window.DropdownOpen = true
 
         local overlay = Instance.new("TextButton", window.ScreenGui)
+        local overlay = Instance.new("TextButton", window.Container)
         overlay.Name = "DropdownOverlay"
         overlay.Size = UDim2.fromScale(1, 1)
         overlay.BackgroundTransparency = 1
@@ -1148,11 +1354,14 @@ function Library:CreateTab(name, subtitle, iconName)
         overlay.ZIndex = 200
 
         local popup = Instance.new("Frame", window.ScreenGui)
+        local popup = Instance.new("Frame", window.Container)
         popup.Name = "DropdownPopup"
         popup.Size = UDim2.fromOffset(valueBtn.AbsoluteSize.X, 0)
         popup.Position = UDim2.fromOffset(
             valueBtn.AbsolutePosition.X,
-            valueBtn.AbsolutePosition.Y + valueBtn.AbsoluteSize.Y + 5
+            valueBtn.AbsolutePosition.Y + valueBtn.AbsoluteSize.Y + 5,
+            valueBtn.AbsolutePosition.X / window.Scale,
+            (valueBtn.AbsolutePosition.Y + valueBtn.AbsoluteSize.Y + 5) / window.Scale
         )
         popup.BackgroundColor3 = window.CurrentTheme.ElementBG
         popup.ZIndex = 201
@@ -1379,6 +1588,15 @@ function Library:CreateTab(name, subtitle, iconName)
 		local callback = options.Callback or function() end
 		local changedCallback = options.ChangedCallback or function() end
 		local icon = options.Icon
+		local flag = options.Flag
+
+		if flag then
+			if window.Flags[flag] ~= nil then
+				default = window.Flags[flag]
+			else
+				window.Flags[flag] = default
+			end
+		end
 
 		local parent = getGroup()
 		local frame = Instance.new("Frame", parent)
@@ -1441,12 +1659,21 @@ function Library:CreateTab(name, subtitle, iconName)
 					btn.TextColor3 = window.CurrentTheme.TextSub
 					stroke.Color = window.CurrentTheme.Stroke
 					listening = false
+					if flag then window.Flags[flag] = key end
 					changedCallback(key)
 				end
 			elseif not gameProcessed and input.KeyCode == key then
 				callback()
 			end
 		end)
+
+		if flag then
+			window.ConfigUpdates[flag] = function(newVal)
+				key = newVal
+				btn.Text = key.Name
+				changedCallback(key)
+			end
+		end
 		updateGroupSeparators(parent)
 	end
 
@@ -1458,12 +1685,12 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		local parent = getGroup()
 		local frame = Instance.new("Frame", parent)
-		frame.Size = UDim2.new(1, 0, 0, 50)
+		frame.Size = UDim2.new(1, 0, 0, 42)
 		frame.BackgroundTransparency = 0
 
 		local label = Instance.new("TextLabel", frame)
 		label.Text = text
-		label.Size = UDim2.new(1, 0, 0, 20)
+		label.Size = UDim2.new(0.4, 0, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
 		label.Font = Enum.Font.GothamMedium
@@ -1472,20 +1699,25 @@ function Library:CreateTab(name, subtitle, iconName)
 		local padding = Instance.new("UIPadding", label)
 		padding.PaddingLeft = UDim.new(0, 15)
 		if icon then
-			window:CreateIcon(frame, icon, UDim2.new(0, 12, 0.5, -2)) -- Slightly adjusted for top label
+			window:CreateIcon(frame, icon, UDim2.new(0, 12, 0.5, 0))
 			padding.PaddingLeft = UDim.new(0, 40)
 		end
 
 		local input = Instance.new("TextBox", frame)
-		input.Size = UDim2.new(1, 0, 0, 30)
-		input.Position = UDim2.fromOffset(0, 20)
+		input.Size = UDim2.new(0.6, 0, 1, 0)
+		input.Position = UDim2.new(0.4, 0, 0, 0)
+		input.Size = UDim2.new(0.6, 0, 0, 30)
+		input.Position = UDim2.new(0.4, 0, 0.5, 0)
+		input.AnchorPoint = Vector2.new(0, 0.5)
 		input.Text = ""
 		input.PlaceholderText = placeholder
-		input.TextXAlignment = Enum.TextXAlignment.Left
+		input.TextXAlignment = Enum.TextXAlignment.Right
 		input.Font = Enum.Font.Gotham
 		input.TextSize = 14
 		input.BackgroundTransparency = 1
-		Instance.new("UIPadding", input).PaddingLeft = UDim.new(0, 10)
+		
+		local inputPadding = Instance.new("UIPadding", input)
+		inputPadding.PaddingRight = UDim.new(0, 15)
 
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
@@ -1496,7 +1728,7 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		frame.BackgroundTransparency = 1
 		window:AddThemeObject(label, {TextColor3 = "Text"})
-		window:AddThemeObject(input, {TextColor3 = "TextSub"})
+		window:AddThemeObject(input, {TextColor3 = "TextSub", PlaceholderColor3 = "TextSub"})
 
 		input.FocusLost:Connect(function(enterPressed)
 			if enterPressed then
@@ -1522,4 +1754,4 @@ function Library:SelectTab(name)
 	end
 end
 
-return Library 
+return Library
