@@ -31,12 +31,13 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/arsyn
 ### 1. Create a Window
 ```lua
 local Window = Library.CreateWindow({
-    Title = "MacHub Premium",
-    Size = UDim2.fromOffset(550, 450),
-    Position = UDim2.new(0.5, -275, 0.5, -175), -- Center
-    Theme = "Light", -- Options: "Light", "Dark", "Purple"
-    ToggleKey = Enum.KeyCode.RightControl,
-    Folder = "MacHub" -- Folder name for config files
+	Title = "MacHub Premium",
+	Size = UDim2.fromOffset(550, 350),
+	Position = UDim2.fromScale(0.5, 0.5),
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Theme = "Light",
+	ToggleKey = Enum.KeyCode.RightControl,
+	Folder = "MacHub Premium"
 })
 ```
 
@@ -56,18 +57,18 @@ local MainTab = Window:CreateTab({
 Used to group elements visually.
 ```lua
 MainTab:Section({ 
-    Head = "Farming", 
-    Body = "Main settings for auto farm" 
+    Head = "Selection", 
+    Body = "Hello World" 
 })
 ```
 
 #### Button
 ```lua
 MainTab:Button({
-    Title = "Start Farm",
-    Icon = "play",
+    Title = "Button",
+    Icon = "Button",
     Callback = function()
-        print("Farm started!")
+        print("Button Cllicked")
     end
 })
 ```
@@ -76,9 +77,9 @@ MainTab:Button({
 Supports `Flag` for config saving.
 ```lua
 MainTab:Toggle({
-    Title = "Auto Attack",
+    Title = "Toggle",
     Default = false,
-    Flag = "AutoAttack", -- Unique identifier for config
+    Flag = "Toggle", -- Unique identifier for config
     Callback = function(value)
         print("Auto Attack:", value)
     end
@@ -89,13 +90,13 @@ MainTab:Toggle({
 Supports `Flag` for config saving.
 ```lua
 MainTab:Slider({
-    Title = "WalkSpeed",
+    Title = "Slider",
     Min = 16,
     Max = 100,
     Default = 16,
-    Flag = "WalkSpeed",
+    Flag = "Slider",
     Callback = function(value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+        print("Slider value:", value)
     end
 })
 ```
@@ -120,7 +121,7 @@ MainTab:Input({
     Title = "Text input",
 	Icon = "play",
 	Callback = function(v) 
-		print("Text input:", v)
+		print("New input:", v)
     end
 })
 ```
