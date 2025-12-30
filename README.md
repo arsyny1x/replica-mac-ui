@@ -114,6 +114,17 @@ MainTab:Dropdown({
 })
 ```
 
+### Textinput
+```lua
+MainTab:Input({ 
+    Title = "Text input",
+	Icon = "play",
+	Callback = function(v) 
+		print("Text input:", v)
+    end
+})
+```
+
 #### Keybind
 ```lua
 MainTab:Keybind({
