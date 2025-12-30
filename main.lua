@@ -754,6 +754,9 @@ function Library.CreateWindow(options)
 				self.Main.Visible = true
 				TweenService:Create(self.Main, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = self.OriginalSize, GroupTransparency = 0}):Play()
 			else
+				dragBar.Visible = false
+				resizeHandle.Visible = false
+				shadow.Visible = false
 				local tween = TweenService:Create(self.Main, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), GroupTransparency = 1})
 				tween:Play()
 				tween.Completed:Connect(function()
