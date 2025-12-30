@@ -25,7 +25,7 @@ function Library.CreateWindow(options)
 	end
 	options = options or {}
 
-	local title = options.Title or "MacFinderLib"
+	local title = options.Title or "MacHub Premium"
 	local size = options.Size or UDim2.fromOffset(650, 450)
 	local theme = options.Theme or "Light"
 	local position = options.Position or UDim2.fromScale(0.5, 0.5)
@@ -57,6 +57,7 @@ function Library.CreateWindow(options)
 
 	self.IsMinimized = false
 	self.IsMaximized = false
+	self.IsOpen = true
 	self.PreMaxSize = size
 	self.PreMaxPos = position
 	self.OriginalSize = size
@@ -145,7 +146,7 @@ function Library.CreateWindow(options)
 	self.Main.Name = "Main"
 	self.Main.Size = self.OriginalSize
 	self.Main.Position = position
-	self.Main.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.Main.AnchorPoint = options.AnchorPoint or Vector2.new(0.5, 0.5)
 	self.Main.Parent = self.ScreenGui
 	self.Main.Parent = self.Container
 	
@@ -514,7 +515,7 @@ function Library.CreateWindow(options)
 	self.Dock.Text = ""
 	self.Dock.AutomaticSize = Enum.AutomaticSize.X
 	self.Dock.Size = UDim2.fromOffset(0, 32)
-	self.Dock.Position = UDim2.new(0.5, 0, 0, 2)
+	self.Dock.Position = UDim2.new(0.5, 0, 0, 15)
 	self.Dock.AnchorPoint = Vector2.new(0.5, 0)
 	self.Dock.BackgroundColor3 = self.CurrentTheme.Main
 	self.Dock.Visible = false
@@ -747,7 +748,21 @@ function Library.CreateWindow(options)
 	-- Global Keybind Listener
 	UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		if not gameProcessed and input.KeyCode == self.ToggleKey then
-			self.ScreenGui.Enabled = not self.ScreenGui.Enabled
+			self.IsOpen = not self.IsOpen
+			if self.IsOpen then
+				self.ScreenGui.Enabled = true
+				self.Main.Visible = true
+				TweenService:Create(self.Main, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = self.OriginalSize, GroupTransparency = 0}):Play()
+			else
+				local tween = TweenService:Create(self.Main, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), GroupTransparency = 1})
+				tween:Play()
+				tween.Completed:Connect(function()
+					if not self.IsOpen then
+						self.ScreenGui.Enabled = false
+						self.Main.Visible = false
+					end
+				end)
+			end
 		end
 	end)
 

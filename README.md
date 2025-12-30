@@ -31,12 +31,13 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/arsyn
 ### 1. Create a Window
 ```lua
 local Window = Library.CreateWindow({
-    Title = "MacHub Premium",
-    Size = UDim2.fromOffset(550, 450),
-    Position = UDim2.new(0.5, -275, 0.5, -175), -- Center
-    Theme = "Light", -- Options: "Light", "Dark", "Purple"
-    ToggleKey = Enum.KeyCode.RightControl,
-    Folder = "MacHub" -- Folder name for config files
+	Title = "MacHub Premium",
+	Size = UDim2.fromOffset(550, 350),
+	Position = UDim2.fromScale(0.5, 0.5),
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Theme = "Light",
+	ToggleKey = Enum.KeyCode.RightControl,
+	Folder = "MacHub Premium"
 })
 ```
 
@@ -114,7 +115,7 @@ MainTab:Dropdown({
 })
 ```
 
-### Textinput
+#### Textinput
 ```lua
 MainTab:Input({ 
     Title = "Text input",
