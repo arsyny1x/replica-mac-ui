@@ -66,6 +66,18 @@ function Library.CreateWindow(options)
 	self.Flags = {}
 	self.ConfigUpdates = {}
 	
+	self.Switch = setmetatable({}, {
+		__index = function(_, key)
+			return self.Flags[key]
+		end,
+		__newindex = function(_, key, value)
+			self.Flags[key] = value
+			if self.ConfigUpdates[key] then
+				self.ConfigUpdates[key](value)
+			end
+		end
+	})
+	
 	function self:SaveConfig(name)
 		local path = name
 		if self.Folder then
@@ -139,7 +151,7 @@ function Library.CreateWindow(options)
 	self.CurrentTheme = self.Themes[theme] or self.Themes.Light
 
 	-- Keybind System
-	self.ToggleKey = toggleKey
+	self.ToggleKey = options.ToggleKey
 	
 	-- Main Window 
 	self.Main = Instance.new("CanvasGroup")
@@ -147,7 +159,6 @@ function Library.CreateWindow(options)
 	self.Main.Size = self.OriginalSize
 	self.Main.Position = position
 	self.Main.AnchorPoint = Vector2.new(0.5, 0.5)
-	self.Main.Parent = self.ScreenGui
 	self.Main.Parent = self.Container
 	
 	local mainCorner = Instance.new("UICorner")
@@ -169,7 +180,6 @@ function Library.CreateWindow(options)
 	shadow.ScaleType = Enum.ScaleType.Slice
 	shadow.SliceScale = 1
 	shadow.ZIndex = self.Main.ZIndex - 1
-	shadow.Parent = self.ScreenGui
 	shadow.Parent = self.Container
 
 	-- Header Area (Drag Zone)
@@ -300,7 +310,6 @@ function Library.CreateWindow(options)
 
 	-- Popup System
 	function self:ShowPopup(titleText, msgText, onConfirm)
-		local overlay = Instance.new("Frame", self.ScreenGui)
 		local overlay = Instance.new("Frame", self.Container)
 		overlay.Name = "PopupOverlay"
 		overlay.Size = UDim2.fromScale(1, 1)
@@ -370,7 +379,6 @@ function Library.CreateWindow(options)
 
 	-- Selection Popup System (Dropdown)
 	function self:ShowSelection(titleText, options, callback)
-		local overlay = Instance.new("Frame", self.ScreenGui)
 		local overlay = Instance.new("Frame", self.Container)
 		overlay.Name = "SelectionOverlay"
 		overlay.Size = UDim2.fromScale(1, 1)
@@ -426,7 +434,6 @@ function Library.CreateWindow(options)
 	end
 
 	-- Notification System
-	local notifyHolder = Instance.new("Frame", self.ScreenGui)
 	local notifyHolder = Instance.new("Frame", self.Container)
 	notifyHolder.Name = "Notifications"
 	notifyHolder.Size = UDim2.new(0, 250, 1, -20)
@@ -1345,7 +1352,6 @@ function Library:CreateTab(name, subtitle, iconName)
         if window.DropdownOpen then return end
         window.DropdownOpen = true
 
-        local overlay = Instance.new("TextButton", window.ScreenGui)
         local overlay = Instance.new("TextButton", window.Container)
         overlay.Name = "DropdownOverlay"
         overlay.Size = UDim2.fromScale(1, 1)
@@ -1355,7 +1361,6 @@ function Library:CreateTab(name, subtitle, iconName)
         overlay.Selectable = false
         overlay.ZIndex = 200
 
-        local popup = Instance.new("Frame", window.ScreenGui)
         local popup = Instance.new("Frame", window.Container)
         popup.Name = "DropdownPopup"
         popup.Size = UDim2.fromOffset(valueBtn.AbsoluteSize.X, 0)
