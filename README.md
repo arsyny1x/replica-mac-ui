@@ -146,6 +146,30 @@ Window:SaveConfig("MyConfig")
 
 -- Load Settings
 Window:LoadConfig("MyConfig")
+
+-- Set Theme
+Window:SetTheme("Light") -- Light, Dark, Purple
+```
+
+### 5. Utilities
+
+#### Notifications
+Send a toast notification to the user.
+```lua
+Window:Notify("Title", "Message content here", 3) -- Title, Message, Duration (seconds)
+```
+
+#### Live Flags (Switch)
+You can access or modify element values directly using `Window.Switch`. This is useful for loops or external cripts.
+
+```lua
+-- Read value
+if Window.Flags.Toggle then
+    print("Auto Farm is ON")
+end
+
+-- Set value (Updates UI automatically)
+Window.Flags.Toggle = false 
 ```
 
 ## 📜 Credits
