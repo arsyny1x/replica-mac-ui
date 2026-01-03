@@ -763,7 +763,13 @@ function Library.CreateWindow(options)
 	-- Global Keybind Listener
 	UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		if not gameProcessed and input.KeyCode == self.ToggleKey then
-			self.ScreenGui.Enabled = not self.ScreenGui.Enabled
+			if self.Main.Visible then
+				self.Main.Visible = false
+				self.Dock.Visible = true
+			else
+				self.Main.Visible = true
+				self.Dock.Visible = false
+			end
 		end
 	end)
 
