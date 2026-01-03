@@ -108,6 +108,7 @@ MainTab:Dropdown({
     Title = "Select Weapon",
     Values = {"Melee", "Sword", "Fruit"},
     Value = "Melee", -- Default
+    Multi = true, -- Multiple selection
     Flag = "WeaponSelector",
     Callback = function(value)
         print("Selected:", value)
