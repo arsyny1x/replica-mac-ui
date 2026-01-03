@@ -190,39 +190,98 @@ function Library.CreateWindow(options)
 	self.Header.ZIndex = 2
 	self.Header.Parent = self.Main
 
-	-- Sidebar Separator (Line that appears when scrolling)
-	local sidebarSeparator = Instance.new("Frame")
-	sidebarSeparator.Name = "SidebarSeparator"
-	sidebarSeparator.Size = UDim2.new(0, 180, 0, 1)
-	sidebarSeparator.Position = UDim2.new(0, 0, 0, 55)
-	sidebarSeparator.BackgroundTransparency = 1
-	sidebarSeparator.BorderSizePixel = 0
-	sidebarSeparator.ZIndex = 5
-	sidebarSeparator.Parent = self.Main
-
 	-- Sidebar Header (Static background for top left)
 	local sbHeader = Instance.new("Frame")
 	sbHeader.Name = "SidebarHeader"
-	sbHeader.Size = UDim2.new(0, 180, 0, 55)
+	sbHeader.Size = UDim2.new(0, 180, 0, 95) -- Increased height for search bar
 	sbHeader.Position = UDim2.new(0, 0, 0, 0)
 	sbHeader.BackgroundTransparency = 0.2
 	sbHeader.BorderSizePixel = 0
 	sbHeader.Parent = self.Main
 
+    -- [NEW] Search Bar
+    local searchContainer = Instance.new("Frame", sbHeader)
+    searchContainer.Name = "SearchContainer"
+    searchContainer.Size = UDim2.new(0.85, 0, 0, 28)
+    searchContainer.Position = UDim2.new(0.5, 0, 0, 55)
+    searchContainer.AnchorPoint = Vector2.new(0.5, 0)
+    searchContainer.BackgroundTransparency = 0.5
+    searchContainer.BackgroundColor3 = Color3.fromRGB(0,0,0) -- Will be themed
+    
+    local searchCorner = Instance.new("UICorner", searchContainer)
+    searchCorner.CornerRadius = UDim.new(0, 6)
+    
+    local searchIcon = Instance.new("ImageLabel", searchContainer)
+    searchIcon.Size = UDim2.fromOffset(14, 14)
+    searchIcon.Position = UDim2.new(0, 8, 0.5, 0)
+    searchIcon.AnchorPoint = Vector2.new(0, 0.5)
+    searchIcon.BackgroundTransparency = 1
+    local sIconInfo = Lucide.GetAsset("search")
+    if sIconInfo then
+        searchIcon.Image = sIconInfo.Url
+        searchIcon.ImageRectSize = sIconInfo.ImageRectSize
+        searchIcon.ImageRectOffset = sIconInfo.ImageRectOffset
+    end
+
+    local searchInput = Instance.new("TextBox", searchContainer)
+    searchInput.Size = UDim2.new(1, -30, 1, 0)
+    searchInput.Position = UDim2.new(0, 28, 0, 0)
+    searchInput.BackgroundTransparency = 1
+    searchInput.PlaceholderText = "Search"
+    searchInput.Text = ""
+    searchInput.TextXAlignment = Enum.TextXAlignment.Left
+    searchInput.Font = Enum.Font.Gotham
+    searchInput.TextSize = 13
+    
+    -- Search Logic moved after Sidebar creation
+
+	-- Sidebar Separator (Line that appears when scrolling)
+	local sidebarSeparator = Instance.new("Frame")
+	sidebarSeparator.Name = "SidebarSeparator"
+	sidebarSeparator.Size = UDim2.new(0, 180, 0, 1)
+	sidebarSeparator.Position = UDim2.new(0, 0, 0, 95) -- Moved down
+	sidebarSeparator.BackgroundTransparency = 1
+	sidebarSeparator.BorderSizePixel = 0
+	sidebarSeparator.ZIndex = 5
+	sidebarSeparator.Parent = self.Main
+
 	-- Sidebar
 	self.Sidebar = Instance.new("ScrollingFrame")
 	self.Sidebar.Name = "Sidebar"
-	self.Sidebar.Size = UDim2.new(0, 180, 1, -55)
-	self.Sidebar.Position = UDim2.new(0, 0, 0, 55)
+	self.Sidebar.Size = UDim2.new(0, 180, 1, -95) -- Adjusted size
+	self.Sidebar.Position = UDim2.new(0, 0, 0, 95) -- Adjusted pos
 	self.Sidebar.BackgroundTransparency = 0.2
 	self.Sidebar.BorderSizePixel = 0
 	self.Sidebar.ScrollBarThickness = 3
-	self.Sidebar.ScrollBarImageTransparency = 1 -- ซ่อนไว้ก่อน
+	self.Sidebar.ScrollBarImageTransparency = 1
 	self.Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	self.Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
 	self.Sidebar.ZIndex = 2
 	self.Sidebar.Parent = self.Main
 	
+    -- Finish Search Logic
+    searchInput:GetPropertyChangedSignal("Text"):Connect(function()
+        local query = searchInput.Text:lower()
+        for _, child in ipairs(self.Sidebar:GetChildren()) do
+            if child:IsA("TextButton") then
+                local found = false
+                if child.Text:lower():find(query) then
+                    found = true
+                else
+                    local container = self.ContentArea:FindFirstChild(child.Name .. "Container")
+                    if container then
+                        for _, desc in ipairs(container:GetDescendants()) do
+                            if (desc:IsA("TextLabel") or desc:IsA("TextButton")) and desc.Text:lower():find(query) then
+                                found = true
+                                break
+                            end
+                        end
+                    end
+                end
+                child.Visible = found
+            end
+        end
+    end)
 
 	local sidebarFadeTween
 	self.Sidebar:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
@@ -273,7 +332,7 @@ function Library.CreateWindow(options)
 	end
 
 	-- Icon Helper
-	function self:CreateIcon(parent, iconName, pos)
+	function self:CreateIcon(parent, iconName, pos, size)
 		if not iconName then return end
 		local info = Lucide.GetAsset(iconName)
 		if not info then
@@ -282,7 +341,7 @@ function Library.CreateWindow(options)
 
 		local icon = Instance.new("ImageLabel")
 		icon.Name = "Icon"
-		icon.Size = UDim2.fromOffset(20, 20)
+		icon.Size = size or UDim2.fromOffset(20, 20)
 		icon.Position = pos or UDim2.new(0, -28, 0.5, 0)
 		icon.AnchorPoint = Vector2.new(0, 0.5)
 		icon.BackgroundTransparency = 1
@@ -375,62 +434,6 @@ function Library.CreateWindow(options)
 		no.Position = UDim2.new(0.1, 0, 1, -40)
 
 		TweenService:Create(box, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.fromOffset(280, 140)}):Play()
-	end
-
-	-- Selection Popup System (Dropdown)
-	function self:ShowSelection(titleText, options, callback)
-		local overlay = Instance.new("Frame", self.Container)
-		overlay.Name = "SelectionOverlay"
-		overlay.Size = UDim2.fromScale(1, 1)
-		overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-		overlay.BackgroundTransparency = 1
-		overlay.ZIndex = 110
-		TweenService:Create(overlay, TweenInfo.new(0.2), {BackgroundTransparency = 0.6}):Play()
-
-		local box = Instance.new("Frame", overlay)
-		box.Size = UDim2.fromOffset(250, 0)
-		box.Position = UDim2.fromScale(0.5, 0.5)
-		box.AnchorPoint = Vector2.new(0.5, 0.5)
-		box.ClipsDescendants = true
-		Instance.new("UICorner", box).CornerRadius = UDim.new(0, 12)
-		
-		self:AddThemeObject(box, {BackgroundColor3 = "Main"})
-
-		local list = Instance.new("ScrollingFrame", box)
-		list.Size = UDim2.new(1, 0, 1, 0)
-		list.BackgroundTransparency = 1
-		list.ScrollBarThickness = 2
-		list.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		list.CanvasSize = UDim2.new(0, 0, 0, 0)
-		
-		local layout = Instance.new("UIListLayout", list)
-		layout.SortOrder = Enum.SortOrder.LayoutOrder
-		
-		local function close()
-			TweenService:Create(overlay, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-			TweenService:Create(box, TweenInfo.new(0.2), {Size = UDim2.fromOffset(250, 0)}):Play()
-			task.wait(0.2)
-			overlay:Destroy()
-		end
-
-		for i, v in ipairs(options) do
-			local btn = Instance.new("TextButton", list)
-			btn.Size = UDim2.new(1, 0, 0, 40)
-			btn.BackgroundTransparency = 1
-			btn.Text = tostring(v)
-			btn.Font = Enum.Font.GothamMedium
-			btn.TextSize = 14
-			btn.LayoutOrder = i
-			
-			self:AddThemeObject(btn, {TextColor3 = "Text"})
-
-			btn.MouseButton1Click:Connect(function()
-				callback(v)
-				close()
-			end)
-		end
-
-		TweenService:Create(box, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.fromOffset(250, math.min(300, #options * 40))}):Play()
 	end
 
 	-- Notification System
@@ -752,6 +755,10 @@ function Library.CreateWindow(options)
 	self:AddThemeObject(sidebarSeparator, {BackgroundColor3 = "Stroke"})
 	self:AddThemeObject(sbHeader, {BackgroundColor3 = "Sidebar"})
 	self:AddThemeObject(self.Sidebar, {BackgroundColor3 = "Sidebar", ScrollBarImageColor3 = "ScrollBar"})
+    self:AddThemeObject(searchContainer, {BackgroundColor3 = "ElementBG"})
+    self:AddThemeObject(searchIcon, {ImageColor3 = "TextSub"})
+    self:AddThemeObject(searchInput, {TextColor3 = "Text", PlaceholderColor3 = "TextSub"})
+
 
 	-- Global Keybind Listener
 	UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -1020,6 +1027,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		separator.Size = UDim2.new(1, 0, 0, 1)
 		separator.Position = UDim2.new(0, 0, 1, -1)
 		separator.BorderSizePixel = 0
+		separator.BackgroundTransparency = 0.8 -- Fainter separator
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		window:AddThemeObject(btn, {
@@ -1094,6 +1102,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		separator.Size = UDim2.new(1, 0, 0, 1)
 		separator.Position = UDim2.new(0, 0, 1, -1)
 		separator.BorderSizePixel = 0
+		separator.BackgroundTransparency = 0.8
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
@@ -1208,6 +1217,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		separator.Size = UDim2.new(1, 0, 0, 1)
 		separator.Position = UDim2.new(0, 0, 1, -1)
 		separator.BorderSizePixel = 0
+		separator.BackgroundTransparency = 0.8
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
@@ -1258,7 +1268,8 @@ function Library:CreateTab(name, subtitle, iconName)
 	function Elements:Dropdown(options)
 		local text = options.Title or "Dropdown"
 		local values = options.Values or {}
-		local default = options.Value or values[1]
+		local multi = options.Multi or false
+		local default = options.Default or (multi and {} or values[1])
 		local callback = options.Callback or function() end
 		local icon = options.Icon
 		local flag = options.Flag
@@ -1270,6 +1281,9 @@ function Library:CreateTab(name, subtitle, iconName)
 				window.Flags[flag] = default
 			end
 		end
+
+        -- Ensure default is table if multi
+        if multi and type(default) ~= "table" then default = {default} end
 
 		local parent = getGroup()
 		local frame = Instance.new("Frame", parent)
@@ -1291,60 +1305,82 @@ function Library:CreateTab(name, subtitle, iconName)
 			padding.PaddingLeft = UDim.new(0, 40)
 		end
 
+        local function getValText()
+            if multi then
+                if #default == 0 then return "None" end
+                return table.concat(default, ", ")
+            else
+                return tostring(default)
+            end
+        end
+
 		-- Value Button (Click to open popup)
 		local valueBtn = Instance.new("TextButton", frame)
 		valueBtn.Size = UDim2.new(0, 200, 0, 28)
 		valueBtn.Position = UDim2.new(1, -10, 0.5, 0)
 		valueBtn.AnchorPoint = Vector2.new(1, 0.5)
-		valueBtn.BackgroundTransparency = 0.9
-		valueBtn.Text = "  " .. tostring(default)
-		valueBtn.TextXAlignment = Enum.TextXAlignment.Left
+		valueBtn.BackgroundTransparency = 1
+		valueBtn.Text = getValText()
+		valueBtn.TextXAlignment = Enum.TextXAlignment.Right -- Right Align
 		valueBtn.Font = Enum.Font.Gotham
 		valueBtn.TextSize = 14
+        valueBtn.ClipsDescendants = true
 		Instance.new("UICorner", valueBtn).CornerRadius = UDim.new(0, 6)
-		Instance.new("UIPadding", valueBtn).PaddingRight = UDim.new(0, 35)
+		Instance.new("UIPadding", valueBtn).PaddingRight = UDim.new(0, 25) -- Space for arrow
 
 		-- Selector Box (Arrows)
 		local arrowBox = Instance.new("Frame", valueBtn) 
 		arrowBox.Size = UDim2.new(0, 20, 0, 20)
-		arrowBox.Position = UDim2.new(1.19, 0, 0.5, 0)
-		arrowBox.AnchorPoint = Vector2.new(1, 0.5)
-		arrowBox.BackgroundColor3 = window.CurrentTheme.Accent 
+		arrowBox.Position = UDim2.new(1, 0, 0.5, 0)
+		arrowBox.AnchorPoint = Vector2.new(0, 0.5)
+		arrowBox.BackgroundTransparency = 1 -- Transparent
 		Instance.new("UICorner", arrowBox).CornerRadius = UDim.new(0, 4)
 
 		local upBtn = Instance.new("TextButton", arrowBox)
 		upBtn.Size = UDim2.new(1, 0, 0.5, 0)
+        upBtn.Position = UDim2.new(0,0,0,0)
+        upBtn.AnchorPoint = Vector2.new(0,0)
 		upBtn.BackgroundTransparency = 1
-		upBtn.Text = "▲"
-		upBtn.TextSize = 10
-		upBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
+		upBtn.Text = ""
+        window:CreateIcon(upBtn, "chevron-up", UDim2.fromScale(0.5, 0.5), UDim2.fromOffset(14,14))
 
 		local downBtn = Instance.new("TextButton", arrowBox)
 		downBtn.Size = UDim2.new(1, 0, 0.5, 0)
-		downBtn.Position = UDim2.new(0, 0, 0.5, 0)
+		downBtn.Position = UDim2.new(0, 0, 1, 0)
+        downBtn.AnchorPoint = Vector2.new(0, 1)
 		downBtn.BackgroundTransparency = 1
-		downBtn.Text = "▼"
-		downBtn.TextSize = 10
-		downBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
+		downBtn.Text = ""
+        window:CreateIcon(downBtn, "chevron-down", UDim2.fromScale(0.5, 0.5), UDim2.fromOffset(14,14))
 
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
 		separator.Size = UDim2.new(1, 0, 0, 1)
 		separator.Position = UDim2.new(0, 0, 1, -1)
 		separator.BorderSizePixel = 0
+		separator.BackgroundTransparency = 0.8
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
 		window:AddThemeObject(label, {TextColor3 = "Text"})
 		window:AddThemeObject(valueBtn, {TextColor3 = "TextSub", BackgroundColor3 = "Text"})
-		window:AddThemeObject(arrowBox, {BackgroundColor3 = "Accent"})
-		window:AddThemeObject(upBtn, {TextColor3 = "TextBtn"})
-		window:AddThemeObject(downBtn, {TextColor3 = "TextBtn"})
+		-- window:AddThemeObject(arrowBox, {BackgroundColor3 = "Accent"}) -- Removed
 
 		local function updateValue(v)
-			valueBtn.Text = "  " .. tostring(v)
-			if flag then window.Flags[flag] = v end
-			callback(v)
+            if multi then
+                -- Toggle
+                local idx = table.find(default, v)
+                if idx then
+                    table.remove(default, idx)
+                else
+                    table.insert(default, v)
+                end
+            else
+			    default = v
+            end
+            
+            valueBtn.Text = getValText()
+			if flag then window.Flags[flag] = default end
+			callback(default)
 		end
 
 		-- Popup Logic
@@ -1361,7 +1397,7 @@ function Library:CreateTab(name, subtitle, iconName)
         overlay.Selectable = false
         overlay.ZIndex = 200
 
-        local popup = Instance.new("Frame", window.Container)
+        local popup = Instance.new("ScrollingFrame", window.Container)
         popup.Name = "DropdownPopup"
         popup.Size = UDim2.fromOffset(valueBtn.AbsoluteSize.X, 0)
         popup.Position = UDim2.fromOffset(
@@ -1373,6 +1409,11 @@ function Library:CreateTab(name, subtitle, iconName)
         popup.BackgroundColor3 = window.CurrentTheme.ElementBG
         popup.ZIndex = 201
         popup.ClipsDescendants = true
+        popup.CanvasSize = UDim2.new(0, 0, 0, 0)
+        popup.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        popup.ScrollBarThickness = 4
+        popup.ScrollBarImageColor3 = window.CurrentTheme.ScrollBar
+        popup.BorderSizePixel = 0
 
         local popupCorner = Instance.new("UICorner", popup)
         popupCorner.CornerRadius = UDim.new(0, 10)
@@ -1382,13 +1423,14 @@ function Library:CreateTab(name, subtitle, iconName)
         stroke.Transparency = 0.6
 
         local padding = Instance.new("UIPadding", popup)
-        padding.PaddingTop = UDim.new(0, 1)
-        padding.PaddingBottom = UDim.new(0, 1)
-        padding.PaddingLeft = UDim.new(0, 1)
-        padding.PaddingRight = UDim.new(0, 1)
+        padding.PaddingTop = UDim.new(0, 4)
+        padding.PaddingBottom = UDim.new(0, 4)
+        padding.PaddingLeft = UDim.new(0, 4)
+        padding.PaddingRight = UDim.new(0, 8) -- More padding for scrollbar
 
         local layout = Instance.new("UIListLayout", popup)
         layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Padding = UDim.new(0, 2)
 
         local function close()
             if overlay then overlay:Destroy() end
@@ -1398,13 +1440,16 @@ function Library:CreateTab(name, subtitle, iconName)
 
         overlay.MouseButton1Click:Connect(close)
 
-        local currentVal = valueBtn.Text:sub(3)
-
         for i, v in ipairs(values) do
-            local isSelected = (tostring(v) == currentVal)
+            local isSelected = false
+            if multi then
+                isSelected = table.find(default, v) ~= nil
+            else
+                isSelected = (tostring(v) == tostring(default))
+            end
 
             local btn = Instance.new("TextButton", popup)
-            btn.Size = UDim2.new(1, 0, 0, 32)
+            btn.Size = UDim2.new(1, 0, 0, 28)
             btn.Text = ""
             btn.BorderSizePixel = 0
             btn.AutoButtonColor = false
@@ -1416,14 +1461,14 @@ function Library:CreateTab(name, subtitle, iconName)
             btn.BackgroundTransparency = 1
 
             local btnCorner = Instance.new("UICorner", btn)
-            btnCorner.CornerRadius = UDim.new(0, 8)
+            btnCorner.CornerRadius = UDim.new(0, 6)
 
             local check = Instance.new("TextLabel", btn)
             check.Size = UDim2.new(0, 30, 1, 0)
             check.BackgroundTransparency = 1
             check.Text = "✔"
             check.Font = Enum.Font.GothamBold
-            check.TextSize = 14
+            check.TextSize = 12
             check.TextColor3 = window.CurrentTheme.Text
             check.Visible = isSelected
 
@@ -1437,14 +1482,7 @@ function Library:CreateTab(name, subtitle, iconName)
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.TextColor3 = window.CurrentTheme.Text
 
-            if i < #values then
-                local itemSeparator = Instance.new("Frame", btn)
-                itemSeparator.Size = UDim2.new(1, 0, 0, 1)
-                itemSeparator.Position = UDim2.new(0, 0, 1, -1)
-                itemSeparator.BorderSizePixel = 0
-                itemSeparator.BackgroundColor3 = window.CurrentTheme.Stroke
-                itemSeparator.BackgroundTransparency = 0.7
-            end
+            -- REMOVED INTERNAL SEPARATOR
 
             btn.MouseEnter:Connect(function()
                 btn.BackgroundTransparency = 0.15
@@ -1469,39 +1507,45 @@ function Library:CreateTab(name, subtitle, iconName)
 
             btn.MouseButton1Click:Connect(function()
                 updateValue(v)
-                close()
+                if multi then
+                     isSelected = table.find(default, v) ~= nil
+                     check.Visible = isSelected
+                     label.Font = isSelected and Enum.Font.GothamBold or Enum.Font.GothamMedium
+                     btn.BackgroundColor3 = window.CurrentTheme.Accent
+                     btn.BackgroundTransparency = 0.15
+                else
+                    close()
+                end
             end)
         end
-
-        popup.Size = UDim2.fromOffset(valueBtn.AbsoluteSize.X, #values * 32 + 2)
+        local newHeight = math.min(#values * 30 + 10, 200) -- Cap height for scrolling
+        popup.Size = UDim2.fromOffset(valueBtn.AbsoluteSize.X, newHeight)
     end)
 
-		-- Cycle Logic
-		local function cycle(dir)
-			local current = valueBtn.Text:sub(3)
-			local idx = 1
-			for i, v in ipairs(values) do
-				if tostring(v) == current then
-					idx = i
-					break
-				end
-			end
-			
-			idx = idx + dir
-			if idx < 1 then idx = #values elseif idx > #values then idx = 1 end
-			updateValue(values[idx])
-		end
+		-- Cycle Logic (Disabled for Multi)
+        local function cycle(dir)
+            if multi then return end -- Disable cycling logic for multi
+            local current = tostring(default)
+            local idx = 1
+            for i, v in ipairs(values) do
+                if tostring(v) == current then
+                    idx = i
+                    break
+                end
+            end
+            
+            idx = idx + dir
+            if idx < 1 then idx = #values elseif idx > #values then idx = 1 end
+            updateValue(values[idx])
+        end
 
-		upBtn.MouseButton1Click:Connect(function()
-			cycle(-1)
-		end)
-		downBtn.MouseButton1Click:Connect(function()
-			cycle(1)
-		end)
+        upBtn.MouseButton1Click:Connect(function() cycle(-1) end)
+        downBtn.MouseButton1Click:Connect(function() cycle(1) end)
 
 		if flag then
 			window.ConfigUpdates[flag] = function(newVal)
-				updateValue(newVal)
+                default = newVal
+				valueBtn.Text = getValText()
 			end
 		end
 		updateGroupSeparators(parent)
@@ -1576,6 +1620,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		separator.Size = UDim2.new(1, 0, 0, 1)
 		separator.Position = UDim2.new(0, 0, 1, -1)
 		separator.BorderSizePixel = 0
+		separator.BackgroundTransparency = 0.8
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		btn.BackgroundTransparency = 1
@@ -1644,6 +1689,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		separator.Size = UDim2.new(1, 0, 0, 1)
 		separator.Position = UDim2.new(0, 0, 1, -1)
 		separator.BorderSizePixel = 0
+		separator.BackgroundTransparency = 0.8
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
@@ -1731,6 +1777,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		separator.Size = UDim2.new(1, 0, 0, 1)
 		separator.Position = UDim2.new(0, 0, 1, -1)
 		separator.BorderSizePixel = 0
+		separator.BackgroundTransparency = 0.8
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
