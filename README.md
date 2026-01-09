@@ -60,6 +60,12 @@ MainTab:Section({
     Head = "Selection", 
     Body = "Hello World" 
 })
+
+-- Update New Text
+MainTab:SetText({ 
+    Head = "Update Selection", 
+    Body = "The quick brown fox jumps over the lazy dog" 
+})
 ```
 
 #### Button
@@ -104,7 +110,7 @@ MainTab:Slider({
 #### Dropdown
 Supports `Flag` for config saving.
 ```lua
-MainTab:Dropdown({
+local DropDown = MainTab:Dropdown({
     Title = "Select Weapon",
     Values = {"Melee", "Sword", "Fruit"},
     Value = "Melee", -- Default
@@ -114,6 +120,9 @@ MainTab:Dropdown({
         print("Selected:", value)
     end
 })
+
+-- Refresh Dropdown
+DropDown:Refresh({"Player1", "Player2", "Player3", "NewPlayer"})
 ```
 
 ### Textinput
@@ -136,6 +145,15 @@ MainTab:Keybind({
         print("New Keybind:", newKey)
     end
 })
+```
+
+### Popup
+```lua
+Window:ShowPopup("Hello World", "The quick brown fox jumps over the lazy dog", function()
+    print("Confirm")
+end, function()
+    print("Cancel")
+end)
 ```
 
 ### 4. Configuration System

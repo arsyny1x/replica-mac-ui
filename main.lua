@@ -31,6 +31,9 @@ function Library.CreateWindow(options)
 	local position = options.Position or UDim2.fromScale(0.5, 0.5)
 	local dockIcon = options.DockIcon or "external-link"
 	
+	self.HeadFontSize = options.HeadFontSize or 14
+	self.BodyFontSize = options.BodyFontSize or 12
+
 	-- Root
 	self.ScreenGui = Instance.new("ScreenGui")
 	self.ScreenGui.Name = "MacFinderLib"
@@ -368,7 +371,7 @@ function Library.CreateWindow(options)
 	tLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 
 	-- Popup System
-	function self:ShowPopup(titleText, msgText, onConfirm)
+	function self:ShowPopup(titleText, msgText, onConfirm, onCancel)
 		local overlay = Instance.new("Frame", self.Container)
 		overlay.Name = "PopupOverlay"
 		overlay.Size = UDim2.fromScale(1, 1)
@@ -427,10 +430,10 @@ function Library.CreateWindow(options)
 			return btn
 		end
 
-		local yes = createBtn("Confirm", Color3.fromRGB(0, 122, 255), onConfirm)
+		local yes = createBtn("Confirm", self.CurrentTheme.Accent, onConfirm)
 		yes.Position = UDim2.new(0.5, 5, 1, -40)
 		
-		local no = createBtn("Cancel", Color3.fromRGB(180, 180, 180), nil)
+		local no = createBtn("Cancel", self.CurrentTheme.ToggleInactive, onCancel)
 		no.Position = UDim2.new(0.1, 0, 1, -40)
 
 		TweenService:Create(box, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.fromOffset(280, 140)}):Play()
@@ -1555,6 +1558,12 @@ function Library:CreateTab(name, subtitle, iconName)
 			end
 		end
 		updateGroupSeparators(parent)
+
+		local dropdownFuncs = {}
+		function dropdownFuncs:Refresh(newValues)
+			if newValues then values = newValues end
+		end
+		return dropdownFuncs
 	end
 
 	function Elements:Section(options)
@@ -1562,8 +1571,8 @@ function Library:CreateTab(name, subtitle, iconName)
 		elementCount = elementCount + 1
 		local head = options.Head or "Section"
 		local body = options.body or options.Body or ""
-		local headSize = options.HeadSize or 14
-		local bodySize = options.BodySize or 12
+		local headSize = options.HeadSize or window.HeadFontSize
+		local bodySize = options.BodySize or window.BodyFontSize
 		local icon = options.Icon
 
 		local frame = Instance.new("Frame", page)
@@ -1596,12 +1605,26 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		window:AddThemeObject(headLabel, {TextColor3 = "Text"})
 		window:AddThemeObject(bodyLabel, {TextColor3 = "TextSub"})
+
+		local sectionObject = {}
+		function sectionObject:SetText(newOptions)
+			if type(newOptions) ~= "table" then return end
+			if newOptions.Head then
+				headLabel.Text = newOptions.Head
+			end
+			if newOptions.Body then
+				bodyLabel.Text = newOptions.Body
+			end
+		end
+		
+		return sectionObject
 	end
 
 	function Elements:Popup(options)
 		local text = options.Title or "Popup Button"
 		local msg = options.Message or "Are you sure?"
-		local callback = options.Callback or function() end
+		local onConfirm = options.onConfirm or function() end
+		local onCancel = options.onCancel or function() end
 		local icon = options.Icon
 
 		local parent = getGroup()
@@ -1619,6 +1642,8 @@ function Library:CreateTab(name, subtitle, iconName)
 			-- If left aligned:
 			btn.TextXAlignment = Enum.TextXAlignment.Left
 			padding.PaddingLeft = UDim.new(0, 40)
+		else
+			btn.TextXAlignment = Enum.TextXAlignment.Center
 		end
 		
 		local separator = Instance.new("Frame", btn)
@@ -1635,7 +1660,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		})
 		
 		btn.MouseButton1Click:Connect(function()
-			window:ShowPopup(text, msg, callback)
+			window:ShowPopup(text, msg, onConfirm, onCancel)
 		end)
 		updateGroupSeparators(parent)
 	end
