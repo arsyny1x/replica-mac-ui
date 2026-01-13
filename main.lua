@@ -742,7 +742,12 @@ function Library.CreateWindow(options)
 			self.PreMaxPos = self.Main.Position
 			self.IsMaximized = true
 			local scaleMult = 1 / self.Scale
-			TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(scaleMult, -40, scaleMult, -40), Position = UDim2.fromScale(0.5, 0.5)}):Play()
+			
+			local topInset = playerGui:GetGuiInset().Y
+			local newSize = UDim2.new(scaleMult, -40, scaleMult, -40 - topInset)
+			local newPos = UDim2.new(0.5, 0, 0.5, topInset / 2)
+
+			TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = newSize, Position = newPos}):Play()
 		end
 		syncVisibility()
 	end)
@@ -1196,6 +1201,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		sliderContainer.Position = UDim2.new(1, -10, 0, 0)
 		sliderContainer.AnchorPoint = Vector2.new(1, 0)
 		sliderContainer.BackgroundTransparency = 1
+		sliderContainer.Active = true
 
 		local bar = Instance.new("Frame", sliderContainer)
 		bar.Size = UDim2.new(1, -20, 0, 5) 
