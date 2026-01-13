@@ -99,12 +99,21 @@ function Library.CreateWindow(options)
 		if isfile(path .. ".json") then
 			local json = readfile(path .. ".json")
 			local data = HttpService:JSONDecode(json)
+			task.wait() -- Wait for a frame to let UI elements initialize
 			for k, v in pairs(data) do
 				self.Flags[k] = v
 				if self.ConfigUpdates[k] then
 					self.ConfigUpdates[k](v)
 				end
 			end
+			-- Add a delayed refresh to ensure UI updates
+			task.delay(0.1, function()
+				for k, v in pairs(data) do
+					if self.ConfigUpdates[k] then
+						self.ConfigUpdates[k](v)
+					end
+				end
+			end)
 		end
 	end
 
