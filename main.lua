@@ -497,12 +497,18 @@ function Library.CreateWindow(options)
 
 	local function makeDot(color, action)
 		local btn = Instance.new("TextButton", traffic)
-		btn.Size = UDim2.fromOffset(13, 13) -- ขนาดปุ่มใหญ่ขึ้น
-		btn.BackgroundColor3 = color
+		btn.Size = UDim2.fromOffset(20, 20) -- Larger touch area
 		btn.Text = ""
+		btn.BackgroundTransparency = 1
 		btn.AutoButtonColor = false
-		Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
 		btn.MouseButton1Click:Connect(action)
+
+		local visualDot = Instance.new("Frame", btn)
+		visualDot.Size = UDim2.fromOffset(13, 13)
+		visualDot.Position = UDim2.fromScale(0.5, 0.5)
+		visualDot.AnchorPoint = Vector2.new(0.5, 0.5)
+		visualDot.BackgroundColor3 = color
+		Instance.new("UICorner", visualDot).CornerRadius = UDim.new(1, 0)
 	end
 
 	-- Dock System (Top Center)
@@ -570,6 +576,7 @@ function Library.CreateWindow(options)
 			dragging = true
 			dragStart = input.Position
 			startPos = self.Main.Position
+			self.Header.Active = true
 		end
 	end)
 
@@ -589,6 +596,7 @@ function Library.CreateWindow(options)
 			dragging = true
 			dragStart = input.Position
 			startPos = self.Main.Position
+			dragBar.Active = true
 		end
 	end)
 
@@ -703,6 +711,10 @@ function Library.CreateWindow(options)
 
 	UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			if dragging then
+				self.Header.Active = false
+				dragBar.Active = false
+			end
 			dragging = false
 			resizing = false
 		end
@@ -1237,28 +1249,63 @@ function Library:CreateTab(name, subtitle, iconName)
 		window:AddThemeObject(knobStroke, {Color = "Stroke"})
 
 		local dragging = false
-		local function update()
-			local mousePos = UserInputService:GetMouseLocation().X
-			local barPos = bar.AbsolutePosition.X
-			local barSize = bar.AbsoluteSize.X
-			local percent = math.clamp((mousePos - barPos) / barSize, 0, 1)
+		local page = parent.Parent 
+
+		local function update(input)
+			local inputX = input.Position.X
+			local barAbsX = bar.AbsolutePosition.X
+			local barAbsSizeX = bar.AbsoluteSize.X
+			
+			if barAbsSizeX == 0 then return end
+
+			local percent = math.clamp((inputX - barAbsX) / barAbsSizeX, 0, 1)
 			
 			fill.Size = UDim2.fromScale(percent, 1)
 			knob.Position = UDim2.fromScale(percent, 0.5)
-			local value = math.floor(min + (max - min) * percent)
+			local value = math.floor(min + (max - min) * percent + 0.5)
 			label.Text = text .. ": " .. value
 			if flag then window.Flags[flag] = value end
 			callback(value)
 		end
 
+		local function startDrag()
+			dragging = true
+			if page and page:IsA("ScrollingFrame") then
+				page.ScrollingEnabled = false
+			end
+		end
+		
+		local function endDrag()
+			if not dragging then return end
+			dragging = false
+			if page and page:IsA("ScrollingFrame") then
+				page.ScrollingEnabled = true
+			end
+		end
+
 		knob.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				startDrag()
+			end
 		end)
+
+		bar.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				startDrag()
+				update(input) -- Immediately jump to position
+			end
+		end)
+
 		UserInputService.InputChanged:Connect(function(input)
-			if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then update() end
+			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				update(input)
+			end
 		end)
+
 		UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				endDrag()
+			end
 		end)
 
 		if flag then
