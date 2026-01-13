@@ -1325,7 +1325,7 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		if flag then
 			window.ConfigUpdates[flag] = function(newVal)
-				local value = math.clamp(newVal, min, max)
+				local value = math.clamp(tonumber(newVal) or default, min, max)
 				local percent = (value - min) / (max - min)
 				fill.Size = UDim2.fromScale(percent, 1)
 				knob.Position = UDim2.fromScale(percent, 0.5)
@@ -1615,6 +1615,7 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		if flag then
 			window.ConfigUpdates[flag] = function(newVal)
+				if multi and type(newVal) ~= "table" then newVal = {newVal} end
                 default = newVal
 				valueBtn.Text = getValText()
 				callback(default)
@@ -1888,16 +1889,14 @@ function Library:CreateTab(name, subtitle, iconName)
 		window:AddThemeObject(label, {TextColor3 = "Text"})
 		window:AddThemeObject(input, {TextColor3 = "TextSub", PlaceholderColor3 = "TextSub"})
 
-		input.FocusLost:Connect(function(enterPressed)
-			if enterPressed then
-				if flag then window.Flags[flag] = input.Text end
-				callback(input.Text)
-			end
+		input.FocusLost:Connect(function()
+			if flag then window.Flags[flag] = input.Text end
+			callback(input.Text)
 		end)
 
 		if flag then
 			window.ConfigUpdates[flag] = function(newVal)
-				input.Text = newVal
+				input.Text = tostring(newVal)
 				callback(newVal)
 			end
 		end
