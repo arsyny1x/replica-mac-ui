@@ -1617,6 +1617,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			window.ConfigUpdates[flag] = function(newVal)
                 default = newVal
 				valueBtn.Text = getValText()
+				callback(default)
 			end
 		end
 		updateGroupSeparators(parent)
@@ -1826,8 +1827,18 @@ function Library:CreateTab(name, subtitle, iconName)
 	function Elements:Input(options)
 		local text = options.Title or "Input"
 		local placeholder = options.Placeholder or "Type here..."
+		local default = options.Default or ""
 		local callback = options.Callback or function() end
 		local icon = options.Icon
+		local flag = options.Flag
+
+		if flag then
+			if window.Flags[flag] ~= nil then
+				default = window.Flags[flag]
+			else
+				window.Flags[flag] = default
+			end
+		end
 
 		local parent = getGroup()
 		local frame = Instance.new("Frame", parent)
@@ -1855,7 +1866,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		input.Size = UDim2.new(0.6, 0, 0, 30)
 		input.Position = UDim2.new(0.4, 0, 0.5, 0)
 		input.AnchorPoint = Vector2.new(0, 0.5)
-		input.Text = ""
+		input.Text = default
 		input.PlaceholderText = placeholder
 		input.TextXAlignment = Enum.TextXAlignment.Right
 		input.Font = Enum.Font.Gotham
@@ -1879,9 +1890,17 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		input.FocusLost:Connect(function(enterPressed)
 			if enterPressed then
+				if flag then window.Flags[flag] = input.Text end
 				callback(input.Text)
 			end
 		end)
+
+		if flag then
+			window.ConfigUpdates[flag] = function(newVal)
+				input.Text = newVal
+				callback(newVal)
+			end
+		end
 		updateGroupSeparators(parent)
 	end
 
