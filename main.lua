@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
+local GuiService = game:GetService("GuiService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 -- Lucide Icons
@@ -40,7 +41,7 @@ function Library.CreateWindow(options)
 	self.ScreenGui.ResetOnSpawn = false
 	self.ScreenGui.IgnoreGuiInset = true
 	self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	self.ScreenGui.DisplayOrder = 10000
+	self.ScreenGui.DisplayOrder = 100000
 	self.ScreenGui.Parent = playerGui
 
 	self.Container = Instance.new("Frame")
@@ -64,6 +65,14 @@ function Library.CreateWindow(options)
 	self.PreMaxSize = size
 	self.PreMaxPos = position
 	self.OriginalSize = size
+
+	-- Cleanup System
+	self.Connections = {}
+	self.ScreenGui.Destroying:Connect(function()
+		for _, c in ipairs(self.Connections) do
+			if c.Disconnect then pcall(function() c:Disconnect() end) end
+		end
+	end)
 
 	-- Config System
 	self.Flags = {}
@@ -200,6 +209,7 @@ function Library.CreateWindow(options)
 	self.Header.Size = UDim2.new(1, 0, 0, 55)
 	self.Header.BackgroundTransparency = 1
 	self.Header.ZIndex = 2
+	self.Header.Active = true
 	self.Header.Parent = self.Main
 
 	-- Sidebar Header (Static background for top left)
@@ -383,7 +393,9 @@ function Library.CreateWindow(options)
 	function self:ShowPopup(titleText, msgText, onConfirm, onCancel)
 		local overlay = Instance.new("Frame", self.Container)
 		overlay.Name = "PopupOverlay"
-		overlay.Size = UDim2.fromScale(1, 1)
+		overlay.Size = UDim2.fromScale(1 / self.Scale, 1 / self.Scale)
+		overlay.Position = UDim2.fromScale(0.5, 0.5)
+		overlay.AnchorPoint = Vector2.new(0.5, 0.5)
 		overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 		overlay.BackgroundTransparency = 1
 		overlay.ZIndex = 100
@@ -449,12 +461,18 @@ function Library.CreateWindow(options)
 	end
 
 	-- Notification System
-	local notifyHolder = Instance.new("Frame", self.Container)
+	local notifyHolder = Instance.new("Frame", self.ScreenGui)
 	notifyHolder.Name = "Notifications"
 	notifyHolder.Size = UDim2.new(0, 250, 1, -20)
-	notifyHolder.Position = UDim2.new(1, -270, 0, 10)
+	notifyHolder.Position = UDim2.new(1, -20, 0, 10)
+	notifyHolder.AnchorPoint = Vector2.new(1, 0)
 	notifyHolder.BackgroundTransparency = 1
 	notifyHolder.ZIndex = 100
+
+	if UserInputService.TouchEnabled then
+		local nScale = Instance.new("UIScale", notifyHolder)
+		nScale.Scale = 0.7
+	end
 	
 	local nLayout = Instance.new("UIListLayout", notifyHolder)
 	nLayout.Padding = UDim.new(0, 10)
@@ -585,7 +603,6 @@ function Library.CreateWindow(options)
 			dragging = true
 			dragStart = input.Position
 			startPos = self.Main.Position
-			self.Header.Active = true
 		end
 	end)
 
@@ -597,6 +614,7 @@ function Library.CreateWindow(options)
 	dragBar.BackgroundColor3 = self.CurrentTheme.ButtomDrag
 	dragBar.BackgroundTransparency = 0.3
 	dragBar.ZIndex = 25
+	dragBar.Active = true
 	Instance.new("UICorner", dragBar).CornerRadius = UDim.new(1, 0)
 	self:AddThemeObject(dragBar, {BackgroundColor3 = "ButtomDrag"})
 
@@ -605,7 +623,6 @@ function Library.CreateWindow(options)
 			dragging = true
 			dragStart = input.Position
 			startPos = self.Main.Position
-			dragBar.Active = true
 		end
 	end)
 
@@ -691,7 +708,7 @@ function Library.CreateWindow(options)
 		end
 	end)
 
-	UserInputService.InputChanged:Connect(function(input)
+	table.insert(self.Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
 			self.Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
@@ -716,18 +733,14 @@ function Library.CreateWindow(options)
 				self.OriginalSize = newSize
 			end
 		end
-	end)
+	end))
 
-	UserInputService.InputEnded:Connect(function(input)
+	table.insert(self.Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			if dragging then
-				self.Header.Active = false
-				dragBar.Active = false
-			end
 			dragging = false
 			resizing = false
 		end
-	end)
+	end))
 
 	-- Sync Visibility (External Elements)
 	local function syncVisibility()
@@ -752,7 +765,7 @@ function Library.CreateWindow(options)
 			self.IsMaximized = true
 			local scaleMult = 1 / self.Scale
 			
-			local topInset = playerGui:GetGuiInset().Y
+			local topInset = GuiService:GetGuiInset().Y
 			local newSize = UDim2.new(scaleMult, -40, scaleMult, -40 - topInset)
 			local newPos = UDim2.new(0.5, 0, 0.5, topInset / 2)
 
@@ -790,7 +803,7 @@ function Library.CreateWindow(options)
 
 
 	-- Global Keybind Listener
-	UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	table.insert(self.Connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		if not gameProcessed and input.KeyCode == self.ToggleKey then
 			if self.Main.Visible then
 				self.Main.Visible = false
@@ -800,7 +813,7 @@ function Library.CreateWindow(options)
 				self.Dock.Visible = false
 			end
 		end
-	end)
+	end))
 
 	self.Tabs = {}
 	self.TabCount = 0
@@ -1311,17 +1324,17 @@ function Library:CreateTab(name, subtitle, iconName)
 			end
 		end)
 
-		UserInputService.InputChanged:Connect(function(input)
+		table.insert(window.Connections, UserInputService.InputChanged:Connect(function(input)
 			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 				update(input)
 			end
-		end)
+		end))
 
-		UserInputService.InputEnded:Connect(function(input)
+		table.insert(window.Connections, UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				endDrag()
 			end
-		end)
+		end))
 
 		if flag then
 			window.ConfigUpdates[flag] = function(newVal)
@@ -1799,7 +1812,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			stroke.Color = window.CurrentTheme.Accent
 		end)
 
-		UserInputService.InputBegan:Connect(function(input, gameProcessed)
+		table.insert(window.Connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
 			if listening then
 				if input.UserInputType == Enum.UserInputType.Keyboard then
 					key = input.KeyCode
@@ -1813,7 +1826,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			elseif not gameProcessed and input.KeyCode == key then
 				callback()
 			end
-		end)
+		end))
 
 		if flag then
 			window.ConfigUpdates[flag] = function(newVal)
