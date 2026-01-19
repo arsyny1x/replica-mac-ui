@@ -26,9 +26,9 @@ To use this library in your script, `loadstring` the source (replace the URL wit
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/arsyny1x/replica-mac-ui/refs/heads/main/main.lua"))()
 ```
 
-## 🛠️ Documentation
+# 🛠️ Documentation
 
-### 1. Create a Window
+## 1. Create a Window
 ```lua
 local Window = Library.CreateWindow({
 	Title = "MacHub Premium",
@@ -41,7 +41,7 @@ local Window = Library.CreateWindow({
 })
 ```
 
-### 2. Create a Tab
+## 2. Create a Tab
 ```lua
 local MainTab = Window:CreateTab({
     Name = "Main",
@@ -49,23 +49,23 @@ local MainTab = Window:CreateTab({
     Icon = "a-arrow-down"
 }) 
 
-## Destroy Ui
+#### Destroy Ui
 ```
 Window.ScreenGui:Destroy() 
 ```
 
 ```
-## Space
+#### Space
 ```
 MainTab:Space()
 ```
 
-## Selecttab
+#### Selecttab
 ```
 MainTab:SelectTab()
 ```
 
-### 3. Add Elements
+## 3. Add Elements
 
 #### Section
 Used to group elements visually.
@@ -139,7 +139,7 @@ local DropDown = MainTab:Dropdown({
 DropDown:Refresh({"Player1", "Player2", "Player3", "NewPlayer"})
 ```
 
-### Textinput
+#### Textinput
 ```lua
 MainTab:Input({ 
     Title = "Text input",
@@ -161,7 +161,7 @@ MainTab:Keybind({
 })
 ```
 
-### Popup
+#### Popup
 ```lua
 Window:ShowPopup("Hello World", "The quick brown fox jumps over the lazy dog", function()
     print("Confirm")
@@ -170,7 +170,7 @@ end, function()
 end)
 ```
 
-### 4. Configuration System
+#### 4. Configuration System
 The library automatically handles saving and loading if you provide a `Flag` in your elements.
 
 ```lua
@@ -184,7 +184,7 @@ Window:LoadConfig("MyConfig")
 Window:SetTheme("Light") -- Light, Dark, Purple
 ```
 
-### 5. Utilities
+## 5. Utilities
 
 #### Notifications
 Send a toast notification to the user.
