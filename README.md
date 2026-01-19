@@ -35,9 +35,12 @@ local Window = Library.CreateWindow({
 	Size = UDim2.fromOffset(550, 350),
 	Position = UDim2.fromScale(0.5, 0.5),
 	AnchorPoint = Vector2.new(0.5, 0.5),
-	Theme = "Light",
+	Theme = "Light", -- Light, Dark, Purple
 	ToggleKey = Enum.KeyCode.RightControl,
-	Folder = "MacHub Premium"
+	Folder = "MacHub Premium",
+    ShowProfile = true,               
+    ProfileTitle = "Admin User",    
+    ProfileSubTitle = "Developer"
 })
 ```
 
@@ -50,17 +53,17 @@ local MainTab = Window:CreateTab({
 }) 
 ```
 #### Destroy Ui
-```
+```lua
 Window.ScreenGui:Destroy() 
 ```
 
 #### Space
-```
+```lua
 MainTab:Space()
 ```
 
 #### Selecttab
-```
+```lua
 MainTab:SelectTab()
 ```
 
@@ -192,16 +195,21 @@ Window:Notify("Title", "Message content here", 3) -- Title, Message, Duration (s
 ```
 
 #### Live Flags (Switch)
-You can access or modify element values directly using `Window.Switch`. This is useful for loops or external cripts.
+You can access or modify element values directly using `Window.Switch`. This is useful for loops or external scripts.
+
+**Note:** You must assign a `Flag` to the element to use this feature.
 
 ```lua
+-- Example Element
+-- MainTab:Toggle({ Title = "Auto Farm", Flag = "FarmEnabled", ... })
+
 -- Read value
-if Window.Flags.Toggle then
+if Window.Flags.FarmEnabled then
     print("Auto Farm is ON")
 end
 
 -- Set value (Updates UI automatically)
-Window.Flags.Toggle = false 
+Window.Switch.FarmEnabled = false 
 ```
 
 ## 📜 Credits
