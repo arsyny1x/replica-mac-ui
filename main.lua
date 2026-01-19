@@ -129,17 +129,17 @@ function Library.CreateWindow(options)
 	-- Theme System
 	self.Themes = {
 		Light = {
-			Main = Color3.fromRGB(246, 246, 246),    
-			Sidebar = Color3.fromRGB(240, 240, 240), 
-			Text = Color3.fromRGB(0, 0, 0),          
-			TextSub = Color3.fromRGB(80, 80, 80),    
-			ElementBG = Color3.fromRGB(255, 255, 255),
-			Accent = Color3.fromRGB(0, 122, 255),     
-			Stroke = Color3.fromRGB(200, 200, 200), 
-			TextBtn = Color3.fromRGB(255, 255, 255), 
-			ToggleInactive = Color3.fromRGB(220, 220, 220), 
-			ScrollBar = Color3.fromRGB(180, 180, 180),
-			ButtomDrag = Color3.fromRGB(225, 223, 225)
+			Main = Color3.fromRGB(246, 246, 246),     -- #F2F2F7, secondary background like Control Center panel
+			Sidebar = Color3.fromRGB(246, 246, 246),  -- #E5E5EA, lighter gray for sides
+			Text = Color3.fromRGB(0, 0, 0),           -- #000000, primary label
+			TextSub = Color3.fromRGB(142, 142, 147),  -- #8E8E93, secondary/tertiary label
+			ElementBG = Color3.fromRGB(243, 242, 242),-- #FFFFFF, element fill
+			Accent = Color3.fromRGB(0, 122, 255),     -- #007AFF, system accent blue
+			Stroke = Color3.fromRGB(219, 218, 218),   -- #D1D1D6, separator/stroke
+			TextBtn = Color3.fromRGB(255, 255, 255),  -- #FFFFFF, button text
+			ToggleInactive = Color3.fromRGB(229, 229, 234), -- #E5E5EA, inactive toggle
+			ScrollBar = Color3.fromRGB(199, 199, 204),-- #C7C7CC, scrollbar
+			ButtomDrag = Color3.fromRGB(242, 242, 247)-- #F2F2F7, drag handle to match main
 		},
 		Dark = {
 			Main = Color3.fromRGB(30, 30, 30),
