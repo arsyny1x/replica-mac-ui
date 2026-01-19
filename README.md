@@ -49,6 +49,20 @@ local MainTab = Window:CreateTab({
     Icon = "a-arrow-down"
 }) 
 
+## Destroy Ui
+```
+Window.ScreenGui:Destroy() 
+```
+
+```
+## Space
+```
+MainTab:Space()
+```
+
+## Selecttab
+```
+MainTab:SelectTab()
 ```
 
 ### 3. Add Elements
