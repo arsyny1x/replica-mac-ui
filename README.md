@@ -54,7 +54,6 @@ local MainTab = Window:CreateTab({
 Window.ScreenGui:Destroy() 
 ```
 
-```
 #### Space
 ```
 MainTab:Space()
