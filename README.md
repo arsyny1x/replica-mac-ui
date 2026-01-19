@@ -48,7 +48,7 @@ local MainTab = Window:CreateTab({
     Subtitle = "Auto Farm & Stats",
     Icon = "a-arrow-down"
 }) 
-
+```
 #### Destroy Ui
 ```
 Window.ScreenGui:Destroy() 
