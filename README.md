@@ -2,6 +2,8 @@
 
 A modern, sleek, and macOS-inspired User Interface library for Roblox scripts. Designed for developers who want a clean, professional look for their hubs with built-in configuration handling.
 
+![Preview](assets/preview.png)
+
 ## ✨ Features
 
 - **MacOS Aesthetic**: Authentic look with "traffic light" window controls, sidebar navigation, and smooth animations.
