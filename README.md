@@ -1,4 +1,4 @@
-# Repica Mac UI Library 🍎
+# Replica Mac Ventura System Settings UI Library 🍎
 
 A modern, sleek, and macOS-inspired User Interface library for Roblox scripts. Designed for developers who want a clean, professional look for their hubs with built-in configuration handling.
 
@@ -49,7 +49,7 @@ local Window = Library.CreateWindow({
 local MainTab = Window:CreateTab({
     Name = "Main",
     Subtitle = "Auto Farm & Stats",
-    Icon = "a-arrow-down"
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
 }) 
 ```
 #### Destroy Ui
@@ -88,7 +88,7 @@ MainTab:SetText({
 ```lua
 MainTab:Button({
     Title = "Button",
-    Icon = "Button",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Callback = function()
         print("Button Cllicked")
     end
@@ -100,6 +100,7 @@ Supports `Flag` for config saving.
 ```lua
 MainTab:Toggle({
     Title = "Toggle",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Default = false,
     Flag = "Toggle", -- Unique identifier for config
     Callback = function(value)
@@ -113,6 +114,7 @@ Supports `Flag` for config saving.
 ```lua
 MainTab:Slider({
     Title = "Slider",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Min = 16,
     Max = 100,
     Default = 16,
@@ -128,6 +130,7 @@ Supports `Flag` for config saving.
 ```lua
 local DropDown = MainTab:Dropdown({
     Title = "Select Weapon",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Values = {"Melee", "Sword", "Fruit"},
     Value = "Melee", -- Default
     Multi = true, -- Multiple selection
@@ -145,7 +148,7 @@ DropDown:Refresh({"Player1", "Player2", "Player3", "NewPlayer"})
 ```lua
 MainTab:Input({ 
     Title = "Text input",
-	Icon = "play",
+	Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
 	Callback = function(v) 
 		print("New input:", v)
     end
@@ -156,6 +159,7 @@ MainTab:Input({
 ```lua
 MainTab:Keybind({
     Title = "Toggle Menu",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Default = Enum.KeyCode.RightControl,
     ChangedCallback = function(newKey)
         print("New Keybind:", newKey)

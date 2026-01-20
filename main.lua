@@ -7,6 +7,7 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 -- Lucide Icons
 local Lucide = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua"))()
+local Solar = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/solar/dist/Icons.lua"))()
 
 if playerGui:FindFirstChild("ReplicaMac") then
 	playerGui.ReplicaMac:Destroy()
@@ -413,27 +414,81 @@ function Library.CreateWindow(options)
 	self.ContentArea.Parent = self.Main
 
 	-- Icon Helper
-	function self:CreateIcon(parent, iconName, pos, size)
-		if not iconName then return end
-		local info = Lucide.GetAsset(iconName)
-		if not info then
-			return
-		end
+    function self:CreateIcon(parent, iconName, pos, size)
+        if not iconName or not parent then return end
 
-		local icon = Instance.new("ImageLabel")
-		icon.Name = "Icon"
-		icon.Size = size or UDim2.fromOffset(20, 20)
-		icon.Position = pos or UDim2.new(0, -28, 0.5, 0)
-		icon.AnchorPoint = Vector2.new(0, 0.5)
-		icon.BackgroundTransparency = 1
-		icon.Image = info.Url
-		icon.ImageRectSize = info.ImageRectSize
-		icon.ImageRectOffset = info.ImageRectOffset
-		icon.ZIndex = (parent.ZIndex or 1) + 1
-		icon.Parent = parent
-		self:AddThemeObject(icon, {ImageColor3 = "Text"})
-		return icon
-	end
+        local info
+        local isSolar = false
+
+        local prefix, name = iconName:match("^([^:]+):(.+)$")
+        prefix = prefix and prefix:lower()
+
+        if prefix == "solar" and Solar then
+            name = name:match("^%s*(.-)%s*$") -- trim
+            local asset = Solar[name] or Solar[name:lower()]
+
+            if asset then
+                isSolar = true
+
+                if type(asset) == "string" then
+                    info = {
+                        Url = asset,
+                        ImageRectSize = Vector2.new(0, 0),
+                        ImageRectOffset = Vector2.new(0, 0),
+                    }
+
+                elseif type(asset) == "number" then
+                    info = {
+                        Url = "rbxassetid://" .. asset,
+                        ImageRectSize = Vector2.new(0, 0),
+                        ImageRectOffset = Vector2.new(0, 0),
+                    }
+
+                elseif type(asset) == "table" then
+                    info = {
+                        Url = asset.Image or asset.Url,
+                        ImageRectSize = asset.ImageRectSize or asset.Size or Vector2.new(0, 0),
+                        ImageRectOffset = asset.ImageRectOffset or asset.Offset or Vector2.new(0, 0),
+                    }
+                end
+            end
+
+        elseif iconName:find("^rbxassetid://") or iconName:find("^https?://") then
+            info = {
+                Url = iconName,
+                ImageRectSize = Vector2.new(0, 0),
+                ImageRectOffset = Vector2.new(0, 0),
+            }
+
+        elseif prefix == "lucide" then
+            info = Lucide and Lucide.GetAsset(name:match("^%s*(.-)%s*$"))
+
+        else
+            info = Lucide and Lucide.GetAsset(iconName)
+        end
+
+        if not info or not info.Url then return end
+
+        local icon = Instance.new("ImageLabel")
+        icon.Name = "Icon"
+        icon.Size = size or UDim2.fromOffset(20, 20)
+        icon.Position = pos or UDim2.new(0, -28, 0.5, 0)
+        icon.AnchorPoint = Vector2.new(0, 0.5)
+        icon.BackgroundTransparency = 1
+        icon.Image = info.Url
+        icon.ImageRectSize = info.ImageRectSize or Vector2.new(0, 0)
+        icon.ImageRectOffset = info.ImageRectOffset or Vector2.new(0, 0)
+        icon.ZIndex = (parent.ZIndex or 1) + 1
+
+        if isSolar then
+            icon.ScaleType = Enum.ScaleType.Fit
+        end
+
+        icon.Parent = parent
+        self:AddThemeObject(icon, { ImageColor3 = "Text" })
+
+        return icon
+    end
 
 	-- Traffic Lights 
 	local traffic = Instance.new("Frame")
@@ -1124,7 +1179,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		group.ClipsDescendants = true
 		
 		local corner = Instance.new("UICorner", group)
-		corner.CornerRadius = UDim.new(0, 10)
+		corner.CornerRadius = UDim.new(0, 7)
 		
 		local stroke = Instance.new("UIStroke", group)
 		stroke.Color = window.CurrentTheme.Stroke
