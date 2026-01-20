@@ -40,13 +40,25 @@ local Window = Library.CreateWindow({
 	Theme = "Light", -- Light, Dark, Purple
 	ToggleKey = Enum.KeyCode.RightControl,
 	Folder = "MacHub Premium",
-    ShowProfile = true,               
-    ProfileTitle = "Admin User",    
-    ProfileSubTitle = "Developer"
 })
 ```
 
-## 2. Create a Tab
+#### Destroy Ui
+```lua
+Window.ScreenGui:Destroy() 
+```
+
+## 2. Create Profile
+```lua
+local Profile = Window:CreateProfileTab({
+    Name = "Roblox ID",    
+    --Title = "Roblox ID",  
+    --Subtitle = "Level 999",    
+    --Image = "rbxassetid://..."
+})
+```
+
+## 3. Create a Tab
 ```lua
 local MainTab = Window:CreateTab({
     Name = "Main",
@@ -54,22 +66,8 @@ local MainTab = Window:CreateTab({
     Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
 }) 
 ```
-#### Destroy Ui
-```lua
-Window.ScreenGui:Destroy() 
-```
 
-#### Space
-```lua
-MainTab:Space()
-```
-
-#### Selecttab
-```lua
-MainTab:SelectTab()
-```
-
-## 3. Add Elements
+## 4. Add Elements
 
 #### Section
 Used to group elements visually.
@@ -145,6 +143,19 @@ local DropDown = MainTab:Dropdown({
 -- Refresh Dropdown
 DropDown:Refresh({"Player1", "Player2", "Player3", "NewPlayer"})
 ```
+#### Selection Radio
+```lua
+MainTab:Radio({
+    Title = "Select Mode",     
+    Options = {"Legit", "Rage", "Semi-Rage"}, 
+    Default = "Legit",         
+    Flag = "Select Mode",     
+    Callback = function(value)
+        print("Selected Mode:", value)
+    end
+})
+```
+
 
 #### Textinput
 ```lua
@@ -178,7 +189,7 @@ end, function()
 end)
 ```
 
-#### 4. Configuration System
+#### 5. Configuration System
 The library automatically handles saving and loading if you provide a `Flag` in your elements.
 
 ```lua
@@ -192,12 +203,22 @@ Window:LoadConfig("MyConfig")
 Window:SetTheme("Light") -- Light, Dark, Purple
 ```
 
-## 5. Utilities
+## 6. Utilities
 
 #### Notifications
 Send a toast notification to the user.
 ```lua
 Window:Notify("Title", "Message content here", 3) -- Title, Message, Duration (seconds)
+```
+
+#### Space
+```lua
+MainTab:Space()
+```
+
+#### Selecttab
+```lua
+MainTab:SelectTab()
 ```
 
 #### Live Flags (Switch)

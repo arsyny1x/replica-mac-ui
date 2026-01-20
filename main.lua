@@ -5,7 +5,7 @@ local HttpService = game:GetService("HttpService")
 local GuiService = game:GetService("GuiService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
--- Lucide Icons
+
 local Lucide = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua"))()
 local Solar = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/solar/dist/Icons.lua"))()
 
@@ -129,7 +129,7 @@ function Library.CreateWindow(options)
 
 	-- Theme System
 	self.Themes = {
-		Light = {
+        Light = {
 			Main = Color3.fromRGB(247, 245, 242),   
 			Sidebar = Color3.fromRGB(234, 233, 231), 
 			Text = Color3.fromRGB(81, 78, 78),           
@@ -153,7 +153,7 @@ function Library.CreateWindow(options)
 			TextBtn = Color3.fromRGB(255, 255, 255),
 			ToggleInactive = Color3.fromRGB(60, 60, 60),
 			ScrollBar = Color3.fromRGB(120, 120, 120),
-			ButtomDrag = Color3.fromRGB(225, 223, 225)
+			ButtomDrag = Color3.fromRGB(35, 35, 35)
 		},
 		Purple = {
 			Main = Color3.fromRGB(35, 30, 45),
@@ -166,8 +166,87 @@ function Library.CreateWindow(options)
 			TextBtn = Color3.fromRGB(255, 255, 255),
 			ToggleInactive = Color3.fromRGB(70, 60, 90),
 			ScrollBar = Color3.fromRGB(140, 120, 160),
-			DragBar = Color3.fromRGB(225, 223, 225)
+			ButtomDrag = Color3.fromRGB(40, 35, 50)
+		},
+		Green = {
+			Main = Color3.fromRGB(240, 255, 240),
+			Sidebar = Color3.fromRGB(230, 245, 230),
+			Text = Color3.fromRGB(80, 100, 80),
+			TextSub = Color3.fromRGB(120, 140, 120),
+			ElementBG = Color3.fromRGB(235, 250, 235),
+			Accent = Color3.fromRGB(0, 200, 100),
+			Stroke = Color3.fromRGB(210, 220, 210),
+			TextBtn = Color3.fromRGB(255, 255, 255),
+			ToggleInactive = Color3.fromRGB(220, 230, 220),
+			ScrollBar = Color3.fromRGB(190, 200, 190),
+			ButtomDrag = Color3.fromRGB(235, 245, 235)
+		},
+		Orange = {
+			Main = Color3.fromRGB(255, 245, 235),
+			Sidebar = Color3.fromRGB(245, 235, 225),
+			Text = Color3.fromRGB(100, 70, 50),
+			TextSub = Color3.fromRGB(140, 110, 90),
+			ElementBG = Color3.fromRGB(250, 240, 230),
+			Accent = Color3.fromRGB(255, 150, 50),
+			Stroke = Color3.fromRGB(220, 200, 180),
+			TextBtn = Color3.fromRGB(255, 255, 255),
+			ToggleInactive = Color3.fromRGB(230, 210, 190),
+			ScrollBar = Color3.fromRGB(200, 180, 160),
+			ButtomDrag = Color3.fromRGB(250, 240, 230)
+		},
+		Pink = {
+			Main = Color3.fromRGB(255, 240, 245),
+			Sidebar = Color3.fromRGB(245, 230, 235),
+			Text = Color3.fromRGB(100, 80, 90),
+			TextSub = Color3.fromRGB(140, 120, 130),
+			ElementBG = Color3.fromRGB(250, 235, 240),
+			Accent = Color3.fromRGB(255, 100, 150),
+			Stroke = Color3.fromRGB(220, 200, 210),
+			TextBtn = Color3.fromRGB(255, 255, 255),
+			ToggleInactive = Color3.fromRGB(230, 210, 220),
+			ScrollBar = Color3.fromRGB(200, 180, 190),
+			ButtomDrag = Color3.fromRGB(250, 235, 240)
+		},
+		Blue = {
+			Main = Color3.fromRGB(240, 245, 255),
+			Sidebar = Color3.fromRGB(230, 235, 245),
+			Text = Color3.fromRGB(70, 80, 100),
+			TextSub = Color3.fromRGB(110, 120, 140),
+			ElementBG = Color3.fromRGB(235, 240, 250),
+			Accent = Color3.fromRGB(50, 100, 255),
+			Stroke = Color3.fromRGB(200, 210, 220),
+			TextBtn = Color3.fromRGB(255, 255, 255),
+			ToggleInactive = Color3.fromRGB(220, 225, 235),
+			ScrollBar = Color3.fromRGB(180, 190, 200),
+			ButtomDrag = Color3.fromRGB(235, 240, 250)
+		},
+		Red = {
+			Main = Color3.fromRGB(255, 235, 235),
+			Sidebar = Color3.fromRGB(245, 225, 225),
+			Text = Color3.fromRGB(100, 50, 50),
+			TextSub = Color3.fromRGB(140, 90, 90),
+			ElementBG = Color3.fromRGB(250, 230, 230),
+			Accent = Color3.fromRGB(255, 50, 50),
+			Stroke = Color3.fromRGB(220, 180, 180),
+			TextBtn = Color3.fromRGB(255, 255, 255),
+			ToggleInactive = Color3.fromRGB(230, 190, 190),
+			ScrollBar = Color3.fromRGB(200, 160, 160),
+			ButtomDrag = Color3.fromRGB(250, 230, 230)
+		},
+		Neon = {
+			Main = Color3.fromRGB(20, 20, 30),
+			Sidebar = Color3.fromRGB(15, 15, 25),
+			Text = Color3.fromRGB(255, 255, 255),
+			TextSub = Color3.fromRGB(200, 200, 255),
+			ElementBG = Color3.fromRGB(30, 30, 40),
+			Accent = Color3.fromRGB(0, 255, 255),  -- Cyan neon
+			Stroke = Color3.fromRGB(50, 50, 70),
+			TextBtn = Color3.fromRGB(255, 255, 255),
+			ToggleInactive = Color3.fromRGB(50, 50, 70),
+			ScrollBar = Color3.fromRGB(100, 100, 140),
+			ButtomDrag = Color3.fromRGB(25, 25, 35)
 		}
+        
 	}
 	self.ThemeObjects = {}
 	self.CurrentTheme = self.Themes[theme] or self.Themes.Light
@@ -208,7 +287,7 @@ function Library.CreateWindow(options)
 	self.Main.Parent = self.Container
 	
 	local mainCorner = Instance.new("UICorner")
-	mainCorner.CornerRadius = UDim.new(0, 14) 
+	mainCorner.CornerRadius = UDim.new(0, 18) -- [CONFIG] Main Window Roundness
 	mainCorner.Parent = self.Main
 
 	local mainStroke = Instance.new("UIStroke")
@@ -308,7 +387,7 @@ function Library.CreateWindow(options)
         end)
 
         local pTitle = Instance.new("TextLabel", profileFrame)
-        pTitle.Text = options.ProfileTitle or player.Name
+		pTitle.Text = options.ProfileTitle or player.DisplayName
         pTitle.Size = UDim2.new(1, -60, 0, 16)
         pTitle.Position = UDim2.new(0, 55, 0.5, -8)
         pTitle.BackgroundTransparency = 1
@@ -329,6 +408,16 @@ function Library.CreateWindow(options)
 
         self:AddThemeObject(pTitle, {TextColor3 = "Text"})
         self:AddThemeObject(pSub, {TextColor3 = "TextSub"})
+		self:AddThemeObject(pTitle, {
+			TextColor3 = function(obj, theme)
+				obj.TextColor3 = (self.ActiveTab == profileFrame) and theme.TextBtn or theme.Text
+			end
+		})
+		self:AddThemeObject(pSub, {
+			TextColor3 = function(obj, theme)
+				obj.TextColor3 = (self.ActiveTab == profileFrame) and theme.TextBtn or theme.TextSub
+			end
+		})
     end
 
 	-- Sidebar Separator (Line that appears when scrolling)
@@ -348,7 +437,7 @@ function Library.CreateWindow(options)
 	self.Sidebar.Position = UDim2.new(0, 0, 0, sbHeaderHeight) -- Adjusted pos
 	self.Sidebar.BackgroundTransparency = 0.2
 	self.Sidebar.BorderSizePixel = 0
-	self.Sidebar.ScrollBarThickness = 3
+	self.Sidebar.ScrollBarThickness = 6 -- [CONFIG] Sidebar Scrollbar Thickness
 	self.Sidebar.ScrollBarImageTransparency = 1
 	self.Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	self.Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -384,6 +473,7 @@ function Library.CreateWindow(options)
 		sidebarSeparator.BackgroundTransparency = (self.Sidebar.CanvasPosition.Y > 5) and 0 or 1
 		if sidebarFadeTween then sidebarFadeTween:Cancel() end
 		self.Sidebar.ScrollBarImageTransparency = 0.7
+		self.Sidebar.ScrollBarImageTransparency = 0
 		sidebarFadeTween = TweenService:Create(self.Sidebar, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.5), {ScrollBarImageTransparency = 1})
 		sidebarFadeTween:Play()
 	end)
@@ -748,23 +838,6 @@ function Library.CreateWindow(options)
 		end
 	end)
 
-	-- Resize Borders (เส้นขอบสำหรับย่อขยาย)
-	local resizeRight = Instance.new("Frame", self.Main)
-	resizeRight.Name = "ResizeRight"
-	resizeRight.Size = UDim2.new(0, 10, 1, -20)
-	resizeRight.Position = UDim2.new(1, -10, 0, 0)
-	resizeRight.BackgroundTransparency = 1
-	resizeRight.ZIndex = 20
-	resizeRight.Active = true
-
-	local resizeBottom = Instance.new("Frame", self.Main)
-	resizeBottom.Name = "ResizeBottom"
-	resizeBottom.Size = UDim2.new(1, -20, 0, 10)
-	resizeBottom.Position = UDim2.new(0, 0, 1, -10)
-	resizeBottom.BackgroundTransparency = 1
-	resizeBottom.ZIndex = 20
-	resizeBottom.Active = true
-
 	-- Resize Handle (External)
 	local resizeHandle = Instance.new("Frame", self.Container)
 	resizeHandle.Name = "ResizeHandle"
@@ -777,16 +850,16 @@ function Library.CreateWindow(options)
 
 	local arcContainer = Instance.new("Frame", resizeHandle)
 	arcContainer.Name = "ArcContainer"
-	arcContainer.Size = UDim2.fromOffset(30, 30)
-	arcContainer.Position = UDim2.new(1, 9, 1.2,-1)
+	arcContainer.Size = UDim2.fromOffset(26, 26)
+	arcContainer.Position = UDim2.new(1, 5, 1.1,-1)
 	arcContainer.AnchorPoint = Vector2.new(1, 1)
 	arcContainer.BackgroundTransparency = 1
 	arcContainer.ClipsDescendants = true
 
 	local arcCircle = Instance.new("Frame", arcContainer)
 	arcCircle.Name = "ArcCircle"
-	arcCircle.Size = UDim2.fromOffset(30, 30)
-	arcCircle.Position = UDim2.fromOffset(-10, -10)
+	arcCircle.Size = UDim2.fromOffset(35, 35)
+	arcCircle.Position = UDim2.fromOffset(-15, -15)
 	arcCircle.BackgroundTransparency = 1
 	Instance.new("UICorner", arcCircle).CornerRadius = UDim.new(1, 0)
 
@@ -819,18 +892,6 @@ function Library.CreateWindow(options)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			startResize(input, "Both")
 			TweenService:Create(arcStroke, TweenInfo.new(0.2), {Color = Color3.fromRGB(120, 120, 120)}):Play()
-		end
-	end)
-
-	resizeRight.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			startResize(input, "X")
-		end
-	end)
-
-	resizeBottom.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			startResize(input, "Y")
 		end
 	end)
 
@@ -952,33 +1013,43 @@ function Library.CreateWindow(options)
 end
 
 function Library:CreateTab(name, subtitle, iconName)
+	local options = {}
 	if type(name) == "table" then
-		local options = name
+		options = name
 		name = options.Name
 		subtitle = options.Subtitle
 		iconName = options.Icon
+	else
+		options = {Name = name, Subtitle = subtitle, Icon = iconName}
 	end
 
 	local window = self
-	window.TabCount = window.TabCount + 1
-	local tabBtn = Instance.new("TextButton", self.Sidebar)
-	tabBtn.LayoutOrder = window.TabCount
-	tabBtn.Name = name
-	tabBtn.ZIndex = 2
-	tabBtn.Size = UDim2.new(0.92, 0, 0, 32)
-	tabBtn.BackgroundTransparency = 1
-	tabBtn.Text = name
-	tabBtn.Font = Enum.Font.GothamMedium
-	tabBtn.TextSize = 15
-	tabBtn.TextXAlignment = Enum.TextXAlignment.Left
-	Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 6)
-
-	local padding = Instance.new("UIPadding", tabBtn)
-	if iconName then
-		window:CreateIcon(tabBtn, iconName) -- ใช้ค่า Default จาก CreateIcon
-		padding.PaddingLeft = UDim.new(0, 38)
+	local tabBtn
+	local isProfile = options.IsProfile
+	
+	if isProfile then
+		tabBtn = options.Button
 	else
-		padding.PaddingLeft = UDim.new(0, 12)
+		window.TabCount = window.TabCount + 1
+		tabBtn = Instance.new("TextButton", self.Sidebar)
+		tabBtn.LayoutOrder = window.TabCount
+		tabBtn.Name = name
+		tabBtn.ZIndex = 2
+		tabBtn.Size = UDim2.new(0.92, 0, 0, 32)
+		tabBtn.BackgroundTransparency = 1
+		tabBtn.Text = name
+		tabBtn.Font = Enum.Font.GothamMedium
+		tabBtn.TextSize = 15
+		tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+		Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 9) -- [CONFIG] Tab Button Roundness
+
+		local padding = Instance.new("UIPadding", tabBtn)
+		if iconName then
+			window:CreateIcon(tabBtn, iconName) -- ใช้ค่า Default จาก CreateIcon
+			padding.PaddingLeft = UDim.new(0, 38)
+		else
+			padding.PaddingLeft = UDim.new(0, 12)
+		end
 	end
 
 	-- Container
@@ -991,13 +1062,13 @@ function Library:CreateTab(name, subtitle, iconName)
 	-- Page (ScrollingFrame)
 	local page = Instance.new("ScrollingFrame", container)
 	page.Name = name .. "Page"
-	page.Size = UDim2.new(1, -6, 1, -55) -- ลดขนาดลงนิดนึงให้ Scrollbar ลอย
-	page.Position = UDim2.new(0, 0, 0, 55)
+	page.Size = UDim2.new(1, -13, 1, -55)
+	page.Position = UDim2.new(0, 10, 0, 55)
 	page.BackgroundTransparency = 1
 	page.BorderSizePixel = 0
 	page.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	page.CanvasSize = UDim2.new(0, 0, 0, 0)
-	page.ScrollBarThickness = 3
+	page.ScrollBarThickness = 8
 	page.ScrollBarImageTransparency = 1 -- เริ่มต้นซ่อน
 	
 	local pageLayout = Instance.new("UIListLayout", page)
@@ -1006,7 +1077,7 @@ function Library:CreateTab(name, subtitle, iconName)
 	pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	
 	local pagePadding = Instance.new("UIPadding", page)
-	pagePadding.PaddingLeft = UDim.new(0, 25) -- เพิ่มระยะห่าง
+	pagePadding.PaddingLeft = UDim.new(0, 15) -- เพิ่มระยะห่าง
 	pagePadding.PaddingRight = UDim.new(0, 20) -- ลดขวาลงนิดนึงเพราะ Scrollbar ลอยเข้ามา
 	pagePadding.PaddingTop = UDim.new(0, 20)
 	pagePadding.PaddingBottom = UDim.new(0, 10)
@@ -1084,40 +1155,82 @@ function Library:CreateTab(name, subtitle, iconName)
 	divider.BackgroundTransparency = 1 -- เริ่มต้นซ่อน (เหมือนฝั่งซ้าย)
 	divider.BorderSizePixel = 0
 
+	-- Scrollbar Separator (Right side)
+	local scrollSep = Instance.new("Frame", container)
+	scrollSep.Name = "ScrollSeparator"
+	scrollSep.Size = UDim2.new(0, 1, 1, -50)
+	scrollSep.Position = UDim2.new(1, -15, 0, 55)
+	scrollSep.BackgroundTransparency = 1
+	scrollSep.BorderSizePixel = 0
+	window:AddThemeObject(scrollSep, {BackgroundColor3 = "Stroke"})
+    
 	-- Theme Registration
-	window:AddThemeObject(tabBtn, {
-		BackgroundColor3 = "Accent",
-		TextColor3 = function(obj, theme)
-			obj.TextColor3 = (window.ActiveTab == obj) and theme.TextBtn or theme.TextSub
-		end
-	})
+	if not isProfile then
+		window:AddThemeObject(tabBtn, {
+			BackgroundColor3 = "Accent",
+			TextColor3 = function(obj, theme)
+				obj.TextColor3 = (window.ActiveTab == obj) and theme.TextBtn or theme.TextSub
+			end
+		})
+	else
+		window:AddThemeObject(tabBtn, {
+			BackgroundColor3 = "Accent"
+		})
+	end
 	window:AddThemeObject(title, {TextColor3 = "Text"})
 	window:AddThemeObject(divider, {BackgroundColor3 = "Stroke"})
 	window:AddThemeObject(page, {ScrollBarImageColor3 = "ScrollBar"})
 
 	-- Scrollbar Fade & Divider Logic
 	local contentFadeTween
+	local sepFadeTween
 	page:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+		local isScrolled = page.CanvasPosition.Y > 5
 		-- Show divider when scrolling
-		divider.BackgroundTransparency = (page.CanvasPosition.Y > 5) and 0 or 1
+		divider.BackgroundTransparency = isScrolled and 0 or 1
 
 		if contentFadeTween then contentFadeTween:Cancel() end
-		page.ScrollBarImageTransparency = 0.7
-		contentFadeTween = TweenService:Create(page, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.5), {ScrollBarImageTransparency = 1})
-		contentFadeTween:Play()
+		if sepFadeTween then sepFadeTween:Cancel() end
+		
+		if isScrolled then
+			page.ScrollBarImageTransparency = 0
+			scrollSep.BackgroundTransparency = 0
+		else
+			contentFadeTween = TweenService:Create(page, TweenInfo.new(0.2), {ScrollBarImageTransparency = 1})
+			contentFadeTween:Play()
+			
+			sepFadeTween = TweenService:Create(scrollSep, TweenInfo.new(0.2), {BackgroundTransparency = 1})
+			sepFadeTween:Play()
+		end
 	end)
 
 	local function selectThis()
 		if self.ActivePage then self.ActivePage.Visible = false end
 		if self.ActiveTab then 
 			self.ActiveTab.BackgroundTransparency = 1 
-			self.ActiveTab.TextColor3 = window.CurrentTheme.TextSub
+			if self.ActiveTab:FindFirstChild("UIPadding") then
+				self.ActiveTab.TextColor3 = window.CurrentTheme.TextSub
+			end
+			
+			local oldTitle = self.ActiveTab:FindFirstChild("Title")
+			local oldSub = self.ActiveTab:FindFirstChild("Subtitle")
+			if oldTitle then oldTitle.TextColor3 = window.CurrentTheme.Text end
+			if oldSub then oldSub.TextColor3 = window.CurrentTheme.TextSub end
 		end
 		container.Visible = true
-		tabBtn.BackgroundTransparency = 0
-		tabBtn.TextColor3 = window.CurrentTheme.TextBtn
 		self.ActivePage = container
 		self.ActiveTab = tabBtn
+		
+		if not isProfile then
+			tabBtn.BackgroundTransparency = 0
+			tabBtn.TextColor3 = window.CurrentTheme.TextBtn
+		else
+			tabBtn.BackgroundTransparency = 0
+			local newTitle = tabBtn:FindFirstChild("Title")
+			local newSub = tabBtn:FindFirstChild("Subtitle")
+			if newTitle then newTitle.TextColor3 = window.CurrentTheme.TextBtn end
+			if newSub then newSub.TextColor3 = window.CurrentTheme.TextBtn end
+		end
 	end
 
 	tabBtn.MouseButton1Click:Connect(selectThis)
@@ -1179,11 +1292,11 @@ function Library:CreateTab(name, subtitle, iconName)
 		group.ClipsDescendants = true
 		
 		local corner = Instance.new("UICorner", group)
-		corner.CornerRadius = UDim.new(0, 7)
+		corner.CornerRadius = UDim.new(0, 12) -- [CONFIG] Element Group Roundness
 		
 		local stroke = Instance.new("UIStroke", group)
 		stroke.Color = window.CurrentTheme.Stroke
-		stroke.Transparency = 0.6
+		stroke.Transparency = 0
 		window:AddThemeObject(stroke, {Color = "Stroke"})
 
 		local layout = Instance.new("UIListLayout", group)
@@ -1239,10 +1352,10 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
-		separator.Size = UDim2.new(1, 0, 0, 1)
-		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.Size = UDim2.new(1, -20, 0, 1)
+		separator.Position = UDim2.new(0, 10, 1, -1)
 		separator.BorderSizePixel = 0
-		separator.BackgroundTransparency = 0.8 -- Fainter separator
+		separator.BackgroundTransparency = 0.4
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		window:AddThemeObject(btn, {
@@ -1314,10 +1427,10 @@ function Library:CreateTab(name, subtitle, iconName)
 		
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
-		separator.Size = UDim2.new(1, 0, 0, 1)
-		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.Size = UDim2.new(1, -20, 0, 1)
+		separator.Position = UDim2.new(0, 10, 1, -1)
 		separator.BorderSizePixel = 0
-		separator.BackgroundTransparency = 0.8
+		separator.BackgroundTransparency = 0.4
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
@@ -1403,7 +1516,7 @@ local parent = getGroup()
 		local minLabel = Instance.new("TextLabel", sliderContainer)
 		minLabel.Text = tostring(min)
 		minLabel.Size = UDim2.new(0, 40, 0, 15)
-		minLabel.Position = UDim2.new(0, 20, 0.3, 8) -- ใต้ปลายซ้าย
+		minLabel.Position = UDim2.new(0, 25, 0.3, 8) -- ใต้ปลายซ้าย
 		minLabel.BackgroundTransparency = 1
 		minLabel.TextXAlignment = Enum.TextXAlignment.Left
 		minLabel.Font = Enum.Font.Gotham
@@ -1454,10 +1567,10 @@ local parent = getGroup()
 
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
-		separator.Size = UDim2.new(1, 0, 0, 1)
-		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.Size = UDim2.new(1, -20, 0, 1)
+		separator.Position = UDim2.new(0, 10, 1, -1)
 		separator.BorderSizePixel = 0
-		separator.BackgroundTransparency = 0.8
+		separator.BackgroundTransparency = 0.4
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
@@ -1465,6 +1578,7 @@ local parent = getGroup()
 		window:AddThemeObject(bar, {BackgroundColor3 = "ToggleInactive"})
 		window:AddThemeObject(fill, {BackgroundColor3 = "Accent"})
 		window:AddThemeObject(knobVisual, {BackgroundColor3 = "ElementBG"})
+		window:AddThemeObject(knobVisual, {BackgroundColor3 = "TextBtn"})
 		window:AddThemeObject(knobStroke, {Color = "Stroke"})
 
 		local dragging = false
@@ -1600,7 +1714,7 @@ local parent = getGroup()
 		valueBtn.Font = Enum.Font.Gotham
 		valueBtn.TextSize = 14
         valueBtn.ClipsDescendants = true
-		Instance.new("UICorner", valueBtn).CornerRadius = UDim.new(0, 6)
+		Instance.new("UICorner", valueBtn).CornerRadius = UDim.new(0, 8)
 		Instance.new("UIPadding", valueBtn).PaddingRight = UDim.new(0, 30) -- Space for arrow
 
 		-- Selector Box (Arrows)
@@ -1630,10 +1744,10 @@ local parent = getGroup()
 
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
-		separator.Size = UDim2.new(1, 0, 0, 1)
-		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.Size = UDim2.new(1, -20, 0, 1)
+		separator.Position = UDim2.new(0, 10, 1, -1)
 		separator.BorderSizePixel = 0
-		separator.BackgroundTransparency = 0.8
+		separator.BackgroundTransparency = 0.4
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
@@ -1835,6 +1949,169 @@ local parent = getGroup()
 		return dropdownFuncs
 	end
 
+	function Elements:Radio(options)
+		local items = options.Options or options.Values or {}
+		local default = options.Default
+		local callback = options.Callback or function() end
+		local flag = options.Flag
+
+		if flag then
+			if window.Flags[flag] ~= nil then
+				default = window.Flags[flag]
+			else
+				window.Flags[flag] = default
+			end
+		end
+		
+		if default == nil and #items > 0 then
+			default = items[1]
+		end
+
+		local parent = getGroup()
+		
+		if options.Title then
+			local headerFrame = Instance.new("Frame", parent)
+			headerFrame.Size = UDim2.new(1, 0, 0, 35)
+			headerFrame.BackgroundTransparency = 1
+			
+			local headerLabel = Instance.new("TextLabel", headerFrame)
+			headerLabel.Text = options.Title
+			headerLabel.Size = UDim2.new(1, -20, 1, 0)
+			headerLabel.Position = UDim2.new(0, 15, 0, 0)
+			headerLabel.BackgroundTransparency = 1
+			headerLabel.Font = Enum.Font.GothamBold
+			headerLabel.TextSize = 14
+			headerLabel.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(headerLabel, {TextColor3 = "TextSub"})
+		end
+
+		local buttons = {}
+		local currentVal = default
+
+		local function updateVisuals()
+			for val, objs in pairs(buttons) do
+				local isSelected = (val == currentVal)
+				local theme = window.CurrentTheme
+				
+				if isSelected then
+					TweenService:Create(objs.Indicator, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+					TweenService:Create(objs.Outer, TweenInfo.new(0.2), {BackgroundTransparency = 0, BackgroundColor3 = theme.Accent}):Play()
+					TweenService:Create(objs.OuterStroke, TweenInfo.new(0.2), {Transparency = 1, Color = theme.Accent}):Play()
+				else
+					TweenService:Create(objs.Indicator, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+					TweenService:Create(objs.Outer, TweenInfo.new(0.2), {BackgroundTransparency = 0, BackgroundColor3 = theme.ToggleInactive}):Play()
+					TweenService:Create(objs.OuterStroke, TweenInfo.new(0.2), {Transparency = 1, Color = theme.Stroke}):Play()
+				end
+			end
+		end
+
+		for i, item in ipairs(items) do
+			local frame = Instance.new("TextButton", parent)
+			frame.Size = UDim2.new(1, 0, 0, 35)
+			frame.BackgroundTransparency = 1
+			frame.Text = ""
+			frame.AutoButtonColor = false
+			frame.ClipsDescendants = true
+
+			local label = Instance.new("TextLabel", frame)
+			label.Text = tostring(item)
+			label.Size = UDim2.new(1, -60, 1, 0)
+			label.Position = UDim2.new(0, 40, 0, 0)
+			label.BackgroundTransparency = 1
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Font = Enum.Font.GothamMedium
+			label.TextSize = 14
+			window:AddThemeObject(label, {TextColor3 = "Text"})
+
+			local outer = Instance.new("Frame", frame)
+			outer.Size = UDim2.fromOffset(16, 16)
+			outer.Position = UDim2.new(0, 15, 0.5, 0)
+			outer.AnchorPoint = Vector2.new(0, 0.5)
+			outer.BackgroundTransparency = 1
+			outer.BorderSizePixel = 0
+			
+			local outerCorner = Instance.new("UICorner", outer)
+			outerCorner.CornerRadius = UDim.new(1, 0)
+			
+			local outerStroke = Instance.new("UIStroke", outer)
+			outerStroke.Thickness = 2
+			window:AddThemeObject(outerStroke, {Color = "Stroke"})
+			window:AddThemeObject(outer, {
+				BackgroundColor3 = function(obj, theme)
+					if currentVal == item then
+						obj.BackgroundColor3 = theme.Accent
+						obj.BackgroundTransparency = 0
+					else
+						obj.BackgroundColor3 = theme.ToggleInactive
+						obj.BackgroundTransparency = 0
+					end
+				end
+			})
+
+			local indicator = Instance.new("Frame", outer)
+			indicator.Size = UDim2.fromOffset(6.9, 6.9)
+			indicator.Position = UDim2.fromScale(0.5, 0.5)
+			indicator.AnchorPoint = Vector2.new(0.5, 0.5)
+			indicator.BackgroundTransparency = 1
+			indicator.BorderSizePixel = 0
+			
+			local indCorner = Instance.new("UICorner", indicator)
+			indCorner.CornerRadius = UDim.new(1, 0)
+			window:AddThemeObject(indicator, {BackgroundColor3 = "TextBtn"})
+
+			buttons[item] = {
+				Outer = outer,
+				OuterStroke = outerStroke,
+				Indicator = indicator
+			}
+
+			frame.MouseButton1Click:Connect(function()
+				if currentVal ~= item then
+					currentVal = item
+					if flag then window.Flags[flag] = currentVal end
+					callback(currentVal)
+					updateVisuals()
+				end
+			end)
+			
+			frame.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					local x = input.Position.X - frame.AbsolutePosition.X
+					local y = input.Position.Y - frame.AbsolutePosition.Y
+					if window.Scale and window.Scale ~= 1 then
+						x = x / window.Scale
+						y = y / window.Scale
+					end
+					createRipple(frame, x, y)
+				end
+			end)
+		end
+		
+		local finalSep = Instance.new("Frame", parent)
+		finalSep.Name = "ZSeparator"
+		finalSep.Size = UDim2.new(1, 0, 0, 1)
+		finalSep.BackgroundTransparency = 1
+		
+		local line = Instance.new("Frame", finalSep)
+		line.Size = UDim2.new(1, -20, 1, 0)
+		line.Position = UDim2.new(0, 10, 0, 0)
+		line.BorderSizePixel = 0
+		line.BackgroundTransparency = 0.4
+		window:AddThemeObject(line, {BackgroundColor3 = "Stroke"})
+
+		updateVisuals()
+
+		if flag then
+			window.ConfigUpdates[flag] = function(newVal)
+				currentVal = newVal
+				callback(currentVal)
+				updateVisuals()
+			end
+		end
+		
+		updateGroupSeparators(parent)
+	end
+
 	function Elements:Section(options)
 		endGroup()
 		elementCount = elementCount + 1
@@ -1919,10 +2196,10 @@ local parent = getGroup()
 		
 		local separator = Instance.new("Frame", btn)
 		separator.Name = "Separator"
-		separator.Size = UDim2.new(1, 0, 0, 1)
-		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.Size = UDim2.new(1, -20, 0, 1)
+		separator.Position = UDim2.new(0, 10, 1, -1)
 		separator.BorderSizePixel = 0
-		separator.BackgroundTransparency = 0.8
+		separator.BackgroundTransparency = 0.4
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		btn.BackgroundTransparency = 1
@@ -1980,7 +2257,7 @@ local parent = getGroup()
 		btn.Text = default.Name
 		btn.Font = Enum.Font.GothamBold
 		btn.TextSize = 14
-		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 		local stroke = Instance.new("UIStroke", btn)
 
 		local key = default
@@ -1988,10 +2265,10 @@ local parent = getGroup()
 
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
-		separator.Size = UDim2.new(1, 0, 0, 1)
-		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.Size = UDim2.new(1, -20, 0, 1)
+		separator.Position = UDim2.new(0, 10, 1, -1)
 		separator.BorderSizePixel = 0
-		separator.BackgroundTransparency = 0.8
+		separator.BackgroundTransparency = 0.4
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
@@ -2086,10 +2363,10 @@ local parent = getGroup()
 
 		local separator = Instance.new("Frame", frame)
 		separator.Name = "Separator"
-		separator.Size = UDim2.new(1, 0, 0, 1)
-		separator.Position = UDim2.new(0, 0, 1, -1)
+		separator.Size = UDim2.new(1, -20, 0, 1)
+		separator.Position = UDim2.new(0, 10, 1, -1)
 		separator.BorderSizePixel = 0
-		separator.BackgroundTransparency = 0.8
+		separator.BackgroundTransparency = 0.4
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
@@ -2115,6 +2392,147 @@ local parent = getGroup()
 	end
 
 	return Elements
+end
+
+function Library:CreateProfileTab(options)
+	if type(options) == "string" then
+		options = { Name = options }
+	end
+	options = options or {}
+	local window = self
+	local sbHeader = window.Main.SidebarHeader
+	local profileFrame = sbHeader:FindFirstChild("ProfileFrame")
+	
+	-- Ensure Profile UI exists
+	if not profileFrame then
+		-- Resize Header
+		sbHeader.Size = UDim2.new(0, 180, 0, 145)
+		window.Main.SidebarSeparator.Position = UDim2.new(0, 0, 0, 145)
+		window.Sidebar.Size = UDim2.new(0, 180, 1, -145)
+		window.Sidebar.Position = UDim2.new(0, 0, 0, 145)
+
+		profileFrame = Instance.new("TextButton", sbHeader)
+		profileFrame.Name = "ProfileFrame"
+		profileFrame.Size = UDim2.new(0.92, 0, 0, 50)
+		profileFrame.Position = UDim2.new(0.04, 0, 0, 90)
+		profileFrame.BackgroundTransparency = 1
+		profileFrame.Text = ""
+		profileFrame.AutoButtonColor = false
+		Instance.new("UICorner", profileFrame).CornerRadius = UDim.new(0, 6)
+		
+		local pImage = Instance.new("ImageLabel", profileFrame)
+		pImage.Name = "Image"
+		pImage.Size = UDim2.fromOffset(32, 32)
+		pImage.Position = UDim2.new(0, 12, 0.5, 0)
+		pImage.AnchorPoint = Vector2.new(0, 0.5)
+		pImage.BackgroundColor3 = window.CurrentTheme.ToggleInactive
+		pImage.BackgroundTransparency = 0
+		Instance.new("UICorner", pImage).CornerRadius = UDim.new(1, 0)
+		window:AddThemeObject(pImage, {BackgroundColor3 = "ToggleInactive"})
+		
+		local pTitle = Instance.new("TextLabel", profileFrame)
+		pTitle.Name = "Title"
+		pTitle.Text = options.Title or player.DisplayName
+		pTitle.Size = UDim2.new(1, -60, 0, 16)
+		pTitle.Position = UDim2.new(0, 55, 0.35, -8)
+		pTitle.BackgroundTransparency = 1
+		pTitle.Font = Enum.Font.GothamBold
+		pTitle.TextSize = 13
+		pTitle.TextXAlignment = Enum.TextXAlignment.Left
+		pTitle.TextTruncate = Enum.TextTruncate.AtEnd
+		
+		local pSub = Instance.new("TextLabel", profileFrame)
+		pSub.Name = "Subtitle"
+		pSub.Text = options.Subtitle or ("@" .. player.Name)
+		pSub.Size = UDim2.new(1, -60, 0, 12)
+		pSub.Position = UDim2.new(0, 55, 0.35, 8)
+		pSub.BackgroundTransparency = 1
+		pSub.Font = Enum.Font.Gotham
+		pSub.TextSize = 11
+		pSub.TextXAlignment = Enum.TextXAlignment.Left
+		pSub.TextTruncate = Enum.TextTruncate.AtEnd
+
+		window:AddThemeObject(pTitle, {TextColor3 = "Text"})
+		window:AddThemeObject(pSub, {TextColor3 = "TextSub"})
+		window:AddThemeObject(pTitle, {
+			TextColor3 = function(obj, theme)
+				obj.TextColor3 = (window.ActiveTab == profileFrame) and theme.TextBtn or theme.Text
+			end
+		})
+		window:AddThemeObject(pSub, {
+			TextColor3 = function(obj, theme)
+				obj.TextColor3 = (window.ActiveTab == profileFrame) and theme.TextBtn or theme.TextSub
+			end
+		})
+		
+		if options.Image then
+			pImage.Image = options.Image
+		else
+			task.spawn(function()
+				pImage.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+			end)
+		end
+	else
+		-- Update existing profile frame if options provided
+		if options.Title then profileFrame.Title.Text = options.Title end
+		if options.Subtitle then profileFrame.Subtitle.Text = options.Subtitle end
+		if options.Image then profileFrame.Image.Image = options.Image end
+	end
+	
+	local tab = self:CreateTab({
+		Name = options.Name or "Profile",
+		IsProfile = true,
+		Button = profileFrame
+	})
+	
+	local tabName = options.Name or "Profile"
+	local container = window.ContentArea:FindFirstChild(tabName .. "Container")
+	if container then
+		local page = container:FindFirstChild(tabName .. "Page")
+		if page then
+			local infoFrame = Instance.new("Frame", page)
+			infoFrame.Name = "ProfileInfo"
+			infoFrame.Size = UDim2.new(1, 0, 0, 150)
+			infoFrame.BackgroundTransparency = 1
+			infoFrame.LayoutOrder = -1
+			
+			local bigImage = Instance.new("ImageLabel", infoFrame)
+			bigImage.Size = UDim2.fromOffset(80, 80)
+			bigImage.Position = UDim2.new(0.5, 0, 0, 10)
+			bigImage.AnchorPoint = Vector2.new(0.5, 0)
+			bigImage.BackgroundColor3 = window.CurrentTheme.ToggleInactive
+			bigImage.BackgroundTransparency = 0
+			Instance.new("UICorner", bigImage).CornerRadius = UDim.new(1, 0)
+			window:AddThemeObject(bigImage, {BackgroundColor3 = "ToggleInactive"})
+			
+			task.spawn(function()
+				bigImage.Image = options.Image or Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+			end)
+
+			local bigTitle = Instance.new("TextLabel", infoFrame)
+			bigTitle.Text = options.Title or player.DisplayName
+			bigTitle.Size = UDim2.new(1, 0, 0, 25)
+			bigTitle.Position = UDim2.new(0, 0, 0, 100)
+			bigTitle.BackgroundTransparency = 1
+			bigTitle.Font = Enum.Font.GothamBold
+			bigTitle.TextSize = 22
+			bigTitle.TextXAlignment = Enum.TextXAlignment.Center
+			
+			local bigSub = Instance.new("TextLabel", infoFrame)
+			bigSub.Text = options.Subtitle or ("@" .. player.Name)
+			bigSub.Size = UDim2.new(1, 0, 0, 20)
+			bigSub.Position = UDim2.new(0, 0, 0, 125)
+			bigSub.BackgroundTransparency = 1
+			bigSub.Font = Enum.Font.Gotham
+			bigSub.TextSize = 14
+			bigSub.TextXAlignment = Enum.TextXAlignment.Center
+			
+			window:AddThemeObject(bigTitle, {TextColor3 = "Text"})
+			window:AddThemeObject(bigSub, {TextColor3 = "TextSub"})
+		end
+	end
+	
+	return tab
 end
 
 function Library:SelectTab(name)
