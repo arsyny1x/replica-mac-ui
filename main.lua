@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local GuiService = game:GetService("GuiService")
 local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local playerGui = gethui()
 
 local Lucide = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua"))()
 local Solar = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/solar/dist/Icons.lua"))()
@@ -113,14 +113,14 @@ function Library.CreateWindow(options)
 			for k, v in pairs(data) do
 				self.Flags[k] = v
 				if self.ConfigUpdates[k] then
-					self.ConfigUpdates[k](v)
+					pcall(function() self.ConfigUpdates[k](v) end)
 				end
 			end
 			-- Add a delayed refresh to ensure UI updates
 			task.delay(0.1, function()
 				for k, v in pairs(data) do
 					if self.ConfigUpdates[k] then
-						self.ConfigUpdates[k](v)
+						pcall(function() self.ConfigUpdates[k](v) end)
 					end
 				end
 			end)
@@ -685,16 +685,26 @@ function Library.CreateWindow(options)
 
 	function self:Notify(titleText, descriptionText, duration)
 		local frame = Instance.new("Frame", notifyHolder)
-		frame.Size = UDim2.new(1, 0, 0, 60)
+		frame.AutomaticSize = Enum.AutomaticSize.Y
+		frame.Size = UDim2.new(1, 0, 0, 0)
 		frame.BackgroundTransparency = 0.1
 		frame.Position = UDim2.fromOffset(300, 0) -- Start off screen
 		Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 		local stroke = Instance.new("UIStroke", frame)
 
+		local padding = Instance.new("UIPadding", frame)
+		padding.PaddingTop = UDim.new(0, 8)
+		padding.PaddingBottom = UDim.new(0, 8)
+		padding.PaddingLeft = UDim.new(0, 10)
+		padding.PaddingRight = UDim.new(0, 10)
+
+		local layout = Instance.new("UIListLayout", frame)
+		layout.Padding = UDim.new(0, 2)
+
 		local titleLabel = Instance.new("TextLabel", frame)
 		titleLabel.Text = titleText
-		titleLabel.Size = UDim2.new(1, -20, 0, 25)
-		titleLabel.Position = UDim2.fromOffset(10, 5)
+		titleLabel.Size = UDim2.new(1, 0, 0, 20)
+		titleLabel.Size = UDim2.new(1, -20, 0, 20)
 		titleLabel.Font = Enum.Font.GothamBold
 		titleLabel.TextSize = 14
 		titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -702,8 +712,10 @@ function Library.CreateWindow(options)
 
 		local descriptionLabel = Instance.new("TextLabel", frame)
 		descriptionLabel.Text = descriptionText
-		descriptionLabel.Size = UDim2.new(1, -20, 0, 25)
-		descriptionLabel.Position = UDim2.fromOffset(10, 28)
+		descriptionLabel.Size = UDim2.new(1, 0, 0, 0)
+		descriptionLabel.Size = UDim2.new(1, -20, 0, 0)
+		descriptionLabel.AutomaticSize = Enum.AutomaticSize.Y
+		descriptionLabel.TextWrapped = true
 		descriptionLabel.Font = Enum.Font.Gotham
 		descriptionLabel.TextSize = 13
 		descriptionLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -717,7 +729,12 @@ function Library.CreateWindow(options)
 		TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Position = UDim2.fromOffset(0, 0)}):Play()
 		
 		task.delay(duration or 3, function()
-			TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0)}):Play()
+			local currentSize = frame.AbsoluteSize
+			frame.AutomaticSize = Enum.AutomaticSize.None
+			frame.Size = UDim2.fromOffset(currentSize.X, currentSize.Y)
+			frame.ClipsDescendants = true
+
+			TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {BackgroundTransparency = 1, Size = UDim2.fromOffset(currentSize.X, 0)}):Play()
 			TweenService:Create(titleLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 1}):Play()
 			TweenService:Create(descriptionLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 1}):Play()
 			TweenService:Create(stroke, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Transparency = 1}):Play()
@@ -824,10 +841,9 @@ function Library.CreateWindow(options)
 	visualDragBar.Size = UDim2.new(1, 0, 0, 4)
 	visualDragBar.Position = UDim2.fromScale(0.5, 0.5)
 	visualDragBar.AnchorPoint = Vector2.new(0.5, 0.5)
-	visualDragBar.BackgroundColor3 = self.CurrentTheme.ButtomDrag
+	visualDragBar.BackgroundColor3 = Color3.fromRGB(242, 242, 247)
 	visualDragBar.BackgroundTransparency = 0.3
 	Instance.new("UICorner", visualDragBar).CornerRadius = UDim.new(1, 0)
-	self:AddThemeObject(visualDragBar, {BackgroundColor3 = "ButtomDrag"})
 
 	dragBar.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -865,9 +881,8 @@ function Library.CreateWindow(options)
 
 	local arcStroke = Instance.new("UIStroke", arcCircle)
 	arcStroke.Thickness = 4
-	arcStroke.Color = self.CurrentTheme.ButtomDrag
+	arcStroke.Color = Color3.fromRGB(242, 242, 247)
 	arcStroke.Transparency = 0.3
-	self:AddThemeObject(arcStroke, {Color = "ButtomDrag"})
 
 	local resizing = false
 	local resizeDir = "Both" -- Both, X, Y
@@ -927,8 +942,8 @@ function Library.CreateWindow(options)
 			dragging = false
 			resizing = false
 			local theme = self.CurrentTheme
-			TweenService:Create(visualDragBar, TweenInfo.new(0.2), {BackgroundColor3 = theme.ButtomDrag}):Play()
-			TweenService:Create(arcStroke, TweenInfo.new(0.2), {Color = theme.ButtomDrag}):Play()
+			TweenService:Create(visualDragBar, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(242, 242, 247)}):Play()
+			TweenService:Create(arcStroke, TweenInfo.new(0.2), {Color = Color3.fromRGB(242, 242, 247)}):Play()
 		end
 	end))
 
@@ -1016,11 +1031,11 @@ function Library:CreateTab(name, subtitle, iconName)
 	local options = {}
 	if type(name) == "table" then
 		options = name
-		name = options.Name
+		name = options.Title
 		subtitle = options.Subtitle
 		iconName = options.Icon
 	else
-		options = {Name = name, Subtitle = subtitle, Icon = iconName}
+		options = {Title = name, Subtitle = subtitle, Icon = iconName}
 	end
 
 	local window = self
@@ -1501,22 +1516,22 @@ local parent = getGroup()
 		end
 
 		local sliderContainer = Instance.new("Frame", frame)
-		sliderContainer.Size = UDim2.new(0.95, 0, 1, 0)
+		sliderContainer.Size = UDim2.new(1, 0, 1, 0)
 		sliderContainer.Position = UDim2.new(0, 0, 0, 20) -- ถัดจาก Label
 		sliderContainer.BackgroundTransparency = 1
 		sliderContainer.Active = true
 
 		local bar = Instance.new("Frame", sliderContainer)
-		bar.Size = UDim2.new(1, -20, 0, 5) 
+		bar.Size = UDim2.new(1, -35, 0, 5) 
 		bar.Position = UDim2.fromScale(0.5, 0.3) -- จัดตำแหน่งแนวตั้ง
-		bar.AnchorPoint = Vector2.new(0.47, 0.5)
+		bar.AnchorPoint = Vector2.new(0.5, 0.5)
 		Instance.new("UICorner", bar)
 
 		-- Min Label
 		local minLabel = Instance.new("TextLabel", sliderContainer)
 		minLabel.Text = tostring(min)
 		minLabel.Size = UDim2.new(0, 40, 0, 15)
-		minLabel.Position = UDim2.new(0, 25, 0.3, 8) -- ใต้ปลายซ้าย
+		minLabel.Position = UDim2.new(0, 15, 0.3, 12) -- ใต้ปลายซ้าย
 		minLabel.BackgroundTransparency = 1
 		minLabel.TextXAlignment = Enum.TextXAlignment.Left
 		minLabel.Font = Enum.Font.Gotham
@@ -1527,7 +1542,7 @@ local parent = getGroup()
 		local maxLabel = Instance.new("TextLabel", sliderContainer)
 		maxLabel.Text = tostring(max)
 		maxLabel.Size = UDim2.new(0, 40, 0, 15)
-		maxLabel.Position = UDim2.new(1, -5, 0.3, 8) -- ใต้ปลายขวา
+		maxLabel.Position = UDim2.new(1, -15, 0.3, 12) -- ใต้ปลายขวา
 		maxLabel.AnchorPoint = Vector2.new(1, 0)
 		maxLabel.BackgroundTransparency = 1
 		maxLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -2115,8 +2130,8 @@ local parent = getGroup()
 	function Elements:Section(options)
 		endGroup()
 		elementCount = elementCount + 1
-		local head = options.Head or "Section"
-		local body = options.body or options.Body or ""
+		local head = options.Title or "Section"
+		local body = options.Subtitle or ""
 		local headSize = options.HeadSize or window.HeadFontSize
 		local bodySize = options.BodySize or window.BodyFontSize
 		local icon = options.Icon
@@ -2157,11 +2172,11 @@ local parent = getGroup()
 		local sectionObject = {}
 		function sectionObject:SetText(newOptions)
 			if type(newOptions) ~= "table" then return end
-			if newOptions.Head then
-				headLabel.Text = newOptions.Head
+			if newOptions.Title then
+				headLabel.Text = newOptions.Title
 			end
-			if newOptions.Body then
-				bodyLabel.Text = newOptions.Body
+			if newOptions.Subtitle then
+				bodyLabel.Text = newOptions.Subtitle
 			end
 		end
 		
@@ -2291,7 +2306,7 @@ local parent = getGroup()
 					btn.TextColor3 = window.CurrentTheme.TextSub
 					stroke.Color = window.CurrentTheme.Stroke
 					listening = false
-					if flag then window.Flags[flag] = key end
+					if flag then window.Flags[flag] = key.Name end
 					changedCallback(key)
 				end
 			elseif not gameProcessed and input.KeyCode == key then
@@ -2301,6 +2316,10 @@ local parent = getGroup()
 
 		if flag then
 			window.ConfigUpdates[flag] = function(newVal)
+				if typeof(newVal) == "string" then
+					local s, r = pcall(function() return Enum.KeyCode[newVal] end)
+					if s and r then newVal = r end
+				end
 				key = newVal
 				btn.Text = key.Name
 				changedCallback(key)
@@ -2319,9 +2338,15 @@ local parent = getGroup()
 
 		if flag then
 			if window.Flags[flag] ~= nil then
-				default = window.Flags[flag]
+				local val = window.Flags[flag]
+				if typeof(val) == "string" then
+					local s, r = pcall(function() return Enum.KeyCode[val] end)
+					if s and r then default = r end
+				else
+					default = val
+				end
 			else
-				window.Flags[flag] = default
+				window.Flags[flag] = default.Name
 			end
 		end
 
@@ -2396,7 +2421,7 @@ end
 
 function Library:CreateProfileTab(options)
 	if type(options) == "string" then
-		options = { Name = options }
+		options = { Title = options }
 	end
 	options = options or {}
 	local window = self
@@ -2432,7 +2457,7 @@ function Library:CreateProfileTab(options)
 		
 		local pTitle = Instance.new("TextLabel", profileFrame)
 		pTitle.Name = "Title"
-		pTitle.Text = options.Title or player.DisplayName
+		pTitle.Text = options.Name or player.DisplayName
 		pTitle.Size = UDim2.new(1, -60, 0, 16)
 		pTitle.Position = UDim2.new(0, 55, 0.35, -8)
 		pTitle.BackgroundTransparency = 1
@@ -2474,18 +2499,18 @@ function Library:CreateProfileTab(options)
 		end
 	else
 		-- Update existing profile frame if options provided
-		if options.Title then profileFrame.Title.Text = options.Title end
+		if options.Name then profileFrame.Title.Text = options.Name end
 		if options.Subtitle then profileFrame.Subtitle.Text = options.Subtitle end
 		if options.Image then profileFrame.Image.Image = options.Image end
 	end
 	
 	local tab = self:CreateTab({
-		Name = options.Name or "Profile",
+		Title = options.Title or "Profile",
 		IsProfile = true,
 		Button = profileFrame
 	})
 	
-	local tabName = options.Name or "Profile"
+	local tabName = options.Title or "Profile"
 	local container = window.ContentArea:FindFirstChild(tabName .. "Container")
 	if container then
 		local page = container:FindFirstChild(tabName .. "Page")
@@ -2510,7 +2535,7 @@ function Library:CreateProfileTab(options)
 			end)
 
 			local bigTitle = Instance.new("TextLabel", infoFrame)
-			bigTitle.Text = options.Title or player.DisplayName
+			bigTitle.Text = options.Name or player.DisplayName
 			bigTitle.Size = UDim2.new(1, 0, 0, 25)
 			bigTitle.Position = UDim2.new(0, 0, 0, 100)
 			bigTitle.BackgroundTransparency = 1

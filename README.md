@@ -51,8 +51,8 @@ Window.ScreenGui:Destroy()
 ## 2. Create Profile
 ```lua
 local Profile = Window:CreateProfileTab({
-    Name = "Roblox ID",    
-    --Title = "Roblox ID",  
+    Title = "Roblox ID",  
+    --Name = "Roblox ID",    
     --Subtitle = "Level 999",    
     --Image = "rbxassetid://..."
 })
@@ -61,7 +61,7 @@ local Profile = Window:CreateProfileTab({
 ## 3. Create a Tab
 ```lua
 local MainTab = Window:CreateTab({
-    Name = "Main",
+    Title = "Main",
     Subtitle = "Auto Farm & Stats",
     Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
 }) 
@@ -73,14 +73,14 @@ local MainTab = Window:CreateTab({
 Used to group elements visually.
 ```lua
 MainTab:Section({ 
-    Head = "Selection", 
-    Body = "Hello World" 
+    Title = "Selection", 
+    Subtitle = "Hello World" 
 })
 
 -- Update New Text
 MainTab:SetText({ 
-    Head = "Update Selection", 
-    Body = "The quick brown fox jumps over the lazy dog" 
+    Title = "Update Selection", 
+    Subtitle = "The quick brown fox jumps over the lazy dog" 
 })
 ```
 
