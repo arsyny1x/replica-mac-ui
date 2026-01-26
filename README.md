@@ -69,7 +69,7 @@ local MainTab = Window:CreateTab({
 
 ## 4. Add Elements
 
-#### Section
+### Section
 Used to group elements visually.
 ```lua
 MainTab:Section({ 
@@ -84,7 +84,7 @@ MainTab:SetText({
 })
 ```
 
-#### Button
+### Button
 ```lua
 MainTab:Button({
     Title = "Button",
@@ -95,7 +95,7 @@ MainTab:Button({
 })
 ```
 
-#### Toggle
+### Toggle
 Supports `Flag` for config saving.
 ```lua
 MainTab:Toggle({
@@ -109,7 +109,7 @@ MainTab:Toggle({
 })
 ```
 
-#### Slider
+### Slider
 Supports `Flag` for config saving.
 ```lua
 MainTab:Slider({
@@ -125,7 +125,7 @@ MainTab:Slider({
 })
 ```
 
-#### Dropdown
+### Dropdown
 Supports `Flag` for config saving.
 ```lua
 local DropDown = MainTab:Dropdown({
@@ -140,10 +140,13 @@ local DropDown = MainTab:Dropdown({
     end
 })
 
--- Refresh Dropdown
+```
+#### Refresh Dropdown
+```lua
 DropDown:Refresh({"Player1", "Player2", "Player3", "NewPlayer"})
 ```
-#### Selection Radio
+
+### Selection Radio
 ```lua
 MainTab:Radio({
     Title = "Select Mode",     
@@ -156,8 +159,7 @@ MainTab:Radio({
 })
 ```
 
-
-#### Textinput
+### Textinput
 ```lua
 MainTab:Input({ 
     Title = "Text input",
@@ -168,7 +170,7 @@ MainTab:Input({
 })
 ```
 
-#### Keybind
+### Keybind
 ```lua
 MainTab:Keybind({
     Title = "Toggle Menu",
@@ -178,6 +180,18 @@ MainTab:Keybind({
         print("New Keybind:", newKey)
     end
 })
+```
+
+### Console
+```lua
+local console = Main:Console({ Height = 350 })
+
+console:Log("Welcome to the console!")
+console:Log("This is a log entry.", Color3.fromRGB(150, 150, 150))
+```
+#### Clear Console
+```lua
+console:Clear()
 ```
 
 #### Popup
