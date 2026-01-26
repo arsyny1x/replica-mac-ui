@@ -2127,6 +2127,76 @@ local parent = getGroup()
 		updateGroupSeparators(parent)
 	end
 
+		function Elements:Console(options)
+		options = options or {}
+		endGroup() -- End any previous group
+		elementCount = elementCount + 1
+
+		local parentGroup = Instance.new("Frame", page)
+		parentGroup.Name = "ConsoleGroup"
+		parentGroup.LayoutOrder = elementCount
+		parentGroup.Size = UDim2.new(1, 0, 0, options.Height and options.Height or 200)
+		parentGroup.BackgroundTransparency = 1
+
+		local consoleFrame = Instance.new("ScrollingFrame", parentGroup)
+		consoleFrame.Name = "ConsoleFrame"
+		consoleFrame.Size = UDim2.fromScale(1, 1)
+		consoleFrame.BorderSizePixel = 0
+		consoleFrame.ScrollBarThickness = 6
+		consoleFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		consoleFrame.CanvasSize = UDim2.new()
+		window:AddThemeObject(consoleFrame, {BackgroundColor3 = "ElementBG", ScrollBarImageColor3 = "ScrollBar"})
+		
+		local corner = Instance.new("UICorner", consoleFrame)
+		corner.CornerRadius = UDim.new(0, 7)
+		
+		local stroke = Instance.new("UIStroke", consoleFrame)
+		stroke.Transparency = 0.6
+		window:AddThemeObject(stroke, {Color = "Stroke"})
+
+		local layout = Instance.new("UIListLayout", consoleFrame)
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Padding = UDim.new(0, 5)
+		
+		local padding = Instance.new("UIPadding", consoleFrame)
+		padding.PaddingTop = UDim.new(0, 8)
+		padding.PaddingBottom = UDim.new(0, 8)
+		padding.PaddingLeft = UDim.new(0, 10)
+		padding.PaddingRight = UDim.new(0, 10)
+
+		local consoleObject = {}
+
+		function consoleObject:Log(message, color)
+			local msgLabel = Instance.new("TextLabel")
+			msgLabel.Name = "LogMessage"
+			msgLabel.Text = tostring(message)
+			msgLabel.Font = Enum.Font.Code
+			msgLabel.TextSize = 13
+			msgLabel.TextColor3 = color or window.CurrentTheme.Text
+			msgLabel.TextWrapped = true
+			msgLabel.TextXAlignment = Enum.TextXAlignment.Left
+			msgLabel.BackgroundTransparency = 1
+			msgLabel.Size = UDim2.new(1, -padding.PaddingLeft.Offset - padding.PaddingRight.Offset, 0, 0)
+			msgLabel.AutomaticSize = Enum.AutomaticSize.Y
+			msgLabel.Parent = consoleFrame
+
+			task.wait() 
+			consoleFrame.CanvasPosition = Vector2.new(0, layout.AbsoluteContentSize.Y)
+
+			return msgLabel
+		end
+		
+		function consoleObject:Clear()
+			for _, v in ipairs(consoleFrame:GetChildren()) do
+				if v:IsA("TextLabel") and v.Name == "LogMessage" then
+					v:Destroy()
+				end
+			end
+		end
+
+		return consoleObject
+	end
+
 	function Elements:Section(options)
 		endGroup()
 		elementCount = elementCount + 1
