@@ -1,6 +1,8 @@
-# Repica Mac UI Library 🍎
+# Replica Mac Ventura System Settings UI Library 🍎
 
 A modern, sleek, and macOS-inspired User Interface library for Roblox scripts. Designed for developers who want a clean, professional look for their hubs with built-in configuration handling.
+
+![Preview](assets/preview.png)
 
 ## ✨ Features
 
@@ -35,68 +37,70 @@ local Window = Library.CreateWindow({
 	Size = UDim2.fromOffset(550, 350),
 	Position = UDim2.fromScale(0.5, 0.5),
 	AnchorPoint = Vector2.new(0.5, 0.5),
-	Theme = "Light",
+	Theme = "Light", -- Light, Dark, Purple
 	ToggleKey = Enum.KeyCode.RightControl,
-	Folder = "MacHub Premium"
+	Folder = "MacHub Premium",
 })
 ```
 
-## 2. Create a Tab
-```lua
-local MainTab = Window:CreateTab({
-    Name = "Main",
-    Subtitle = "Auto Farm & Stats",
-    Icon = "a-arrow-down"
-}) 
-```
 #### Destroy Ui
-```
+```lua
 Window.ScreenGui:Destroy() 
 ```
 
-#### Space
-```
-MainTab:Space()
+## 2. Create Profile
+```lua
+local Profile = Window:CreateProfileTab({
+    Title = "Roblox ID",  
+    --Name = "Roblox ID",    
+    --Subtitle = "Level 999",    
+    --Image = "rbxassetid://..."
+})
 ```
 
-#### Selecttab
-```
-MainTab:SelectTab()
+## 3. Create a Tab
+```lua
+local MainTab = Window:CreateTab({
+    Title = "Main",
+    Subtitle = "Auto Farm & Stats",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+}) 
 ```
 
-## 3. Add Elements
+## 4. Add Elements
 
-#### Section
+### Section
 Used to group elements visually.
 ```lua
 MainTab:Section({ 
-    Head = "Selection", 
-    Body = "Hello World" 
+    Title = "Selection", 
+    Subtitle = "Hello World" 
 })
 
 -- Update New Text
 MainTab:SetText({ 
-    Head = "Update Selection", 
-    Body = "The quick brown fox jumps over the lazy dog" 
+    Title = "Update Selection", 
+    Subtitle = "The quick brown fox jumps over the lazy dog" 
 })
 ```
 
-#### Button
+### Button
 ```lua
 MainTab:Button({
     Title = "Button",
-    Icon = "Button",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Callback = function()
         print("Button Cllicked")
     end
 })
 ```
 
-#### Toggle
+### Toggle
 Supports `Flag` for config saving.
 ```lua
 MainTab:Toggle({
     Title = "Toggle",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Default = false,
     Flag = "Toggle", -- Unique identifier for config
     Callback = function(value)
@@ -105,11 +109,12 @@ MainTab:Toggle({
 })
 ```
 
-#### Slider
+### Slider
 Supports `Flag` for config saving.
 ```lua
 MainTab:Slider({
     Title = "Slider",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Min = 16,
     Max = 100,
     Default = 16,
@@ -120,11 +125,12 @@ MainTab:Slider({
 })
 ```
 
-#### Dropdown
+### Dropdown
 Supports `Flag` for config saving.
 ```lua
 local DropDown = MainTab:Dropdown({
     Title = "Select Weapon",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Values = {"Melee", "Sword", "Fruit"},
     Value = "Melee", -- Default
     Multi = true, -- Multiple selection
@@ -134,30 +140,58 @@ local DropDown = MainTab:Dropdown({
     end
 })
 
--- Refresh Dropdown
+```
+#### Refresh Dropdown
+```lua
 DropDown:Refresh({"Player1", "Player2", "Player3", "NewPlayer"})
 ```
 
-#### Textinput
+### Selection Radio
+```lua
+MainTab:Radio({
+    Title = "Select Mode",     
+    Options = {"Legit", "Rage", "Semi-Rage"}, 
+    Default = "Legit",         
+    Flag = "Select Mode",     
+    Callback = function(value)
+        print("Selected Mode:", value)
+    end
+})
+```
+
+### Textinput
 ```lua
 MainTab:Input({ 
     Title = "Text input",
-	Icon = "play",
+	Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
 	Callback = function(v) 
 		print("New input:", v)
     end
 })
 ```
 
-#### Keybind
+### Keybind
 ```lua
 MainTab:Keybind({
     Title = "Toggle Menu",
+    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Default = Enum.KeyCode.RightControl,
     ChangedCallback = function(newKey)
         print("New Keybind:", newKey)
     end
 })
+```
+
+### Console
+```lua
+local console = Main:Console({ Height = 350 })
+
+console:Log("Welcome to the console!")
+console:Log("This is a log entry.", Color3.fromRGB(150, 150, 150))
+```
+#### Clear Console
+```lua
+console:Clear()
 ```
 
 #### Popup
@@ -169,7 +203,7 @@ end, function()
 end)
 ```
 
-#### 4. Configuration System
+#### 5. Configuration System
 The library automatically handles saving and loading if you provide a `Flag` in your elements.
 
 ```lua
@@ -183,7 +217,7 @@ Window:LoadConfig("MyConfig")
 Window:SetTheme("Light") -- Light, Dark, Purple
 ```
 
-## 5. Utilities
+## 6. Utilities
 
 #### Notifications
 Send a toast notification to the user.
@@ -191,17 +225,32 @@ Send a toast notification to the user.
 Window:Notify("Title", "Message content here", 3) -- Title, Message, Duration (seconds)
 ```
 
+#### Space
+```lua
+MainTab:Space()
+```
+
+#### Selecttab
+```lua
+MainTab:SelectTab()
+```
+
 #### Live Flags (Switch)
-You can access or modify element values directly using `Window.Switch`. This is useful for loops or external cripts.
+You can access or modify element values directly using `Window.Switch`. This is useful for loops or external scripts.
+
+**Note:** You must assign a `Flag` to the element to use this feature.
 
 ```lua
+-- Example Element
+-- MainTab:Toggle({ Title = "Auto Farm", Flag = "FarmEnabled", ... })
+
 -- Read value
-if Window.Flags.Toggle then
+if Window.Flags.FarmEnabled then
     print("Auto Farm is ON")
 end
 
 -- Set value (Updates UI automatically)
-Window.Flags.Toggle = false 
+Window.Switch.FarmEnabled = false 
 ```
 
 ## 📜 Credits
