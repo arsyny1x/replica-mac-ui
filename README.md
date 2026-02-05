@@ -88,7 +88,7 @@ MainTab:SetText({
 ```lua
 MainTab:Button({
     Title = "Button",
-    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+    Icon = "lucide:a-arrow-up", -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Callback = function()
         print("Button Cllicked")
     end
@@ -100,7 +100,7 @@ Supports `Flag` for config saving.
 ```lua
 MainTab:Toggle({
     Title = "Toggle",
-    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+    Icon = "lucide:a-arrow-up", -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Default = false,
     Flag = "Toggle", -- Unique identifier for config
     Callback = function(value)
@@ -114,7 +114,7 @@ Supports `Flag` for config saving.
 ```lua
 MainTab:Slider({
     Title = "Slider",
-    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+    Icon = "lucide:a-arrow-up", -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Min = 16,
     Max = 100,
     Default = 16,
@@ -130,7 +130,7 @@ Supports `Flag` for config saving.
 ```lua
 local DropDown = MainTab:Dropdown({
     Title = "Select Weapon",
-    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+    Icon = "lucide:a-arrow-up",
     Values = {"Melee", "Sword", "Fruit"},
     Value = "Melee", -- Default
     Multi = true, -- Multiple selection
@@ -163,7 +163,7 @@ MainTab:Radio({
 ```lua
 MainTab:Input({ 
     Title = "Text input",
-	Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+	Icon = "lucide:a-arrow-up",
 	Callback = function(v) 
 		print("New input:", v)
     end
@@ -174,7 +174,7 @@ MainTab:Input({
 ```lua
 MainTab:Keybind({
     Title = "Toggle Menu",
-    Icon = "lucide:a-arrow-up" -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+    Icon = "lucide:a-arrow-up",
     Default = Enum.KeyCode.RightControl,
     ChangedCallback = function(newKey)
         print("New Keybind:", newKey)
@@ -196,7 +196,7 @@ console:Clear()
 
 #### Popup
 ```lua
-Window:ShowPopup("Hello World", "The quick brown fox jumps over the lazy dog", function()
+Window:ShowPopup("Hello World", "The quick brown fox jumps", function()
     print("Confirm")
 end, function()
     print("Cancel")

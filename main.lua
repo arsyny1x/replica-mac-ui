@@ -1329,6 +1329,7 @@ function Library:CreateTab(name, subtitle, iconName)
 
 	function Elements:Button(options)
 		local text = options.Title or "Button"
+		local subtitle = options.Subtitle
 		local callback = options.Callback or function() end
 		local icon = options.Icon
 
@@ -1339,7 +1340,6 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		local btn = Instance.new("TextButton", frame)
 		btn.Size = UDim2.new(1, 0, 1, 0)
-		btn.Text = text
 		btn.TextXAlignment = Enum.TextXAlignment.Left
 		btn.Font = Enum.Font.GothamMedium
 		btn.TextSize = 15
@@ -1353,6 +1353,32 @@ function Library:CreateTab(name, subtitle, iconName)
 			padding.PaddingLeft = UDim.new(0, 40)
 		end
 		btn.MouseButton1Click:Connect(callback)
+
+		if subtitle then
+			btn.Text = ""
+			local title = Instance.new("TextLabel", btn)
+			title.Text = text
+			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Position = UDim2.new(0, 0, 0, 2)
+			title.Font = Enum.Font.GothamMedium
+			title.TextSize = 15
+			title.BackgroundTransparency = 1
+			title.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(title, {TextColor3 = "Text"})
+
+			local sub = Instance.new("TextLabel", btn)
+			sub.Text = subtitle
+			sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Position = UDim2.new(0, 0, 0, 22)
+			sub.Font = Enum.Font.Gotham
+			sub.TextSize = 12
+			sub.BackgroundTransparency = 1
+			sub.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(sub, {TextColor3 = "TextSub"})
+		else
+			btn.Text = text
+			window:AddThemeObject(btn, {TextColor3 = "Text"})
+		end
 		
 		local arrow = Instance.new("TextLabel", frame)
 		arrow.Text = "く"
@@ -1373,10 +1399,6 @@ function Library:CreateTab(name, subtitle, iconName)
 		separator.BackgroundTransparency = 0.4
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
-		window:AddThemeObject(btn, {
-			TextColor3 = "Text"
-		})
-
 		btn.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 				local x = input.Position.X - btn.AbsolutePosition.X
@@ -1393,6 +1415,7 @@ function Library:CreateTab(name, subtitle, iconName)
 
 	function Elements:Toggle(options)
 		local text = options.Title or "Toggle"
+		local subtitle = options.Subtitle
 		local callback = options.Callback or function() end
 		local default = options.Default or false
 		local icon = options.Icon
@@ -1412,7 +1435,6 @@ function Library:CreateTab(name, subtitle, iconName)
 		frame.BackgroundTransparency = 0
 		
 		local label = Instance.new("TextLabel", frame)
-		label.Text = text
 		label.Size = UDim2.new(1, -50, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1424,6 +1446,32 @@ function Library:CreateTab(name, subtitle, iconName)
 		if icon then
 			window:CreateIcon(frame, icon, UDim2.new(0, 12, 0.5, 0))
 			padding.PaddingLeft = UDim.new(0, 40)
+		end
+
+		if subtitle then
+			label.Text = ""
+			local title = Instance.new("TextLabel", label)
+			title.Text = text
+			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Position = UDim2.new(0, 0, 0, 2)
+			title.Font = Enum.Font.GothamMedium
+			title.TextSize = 15
+			title.BackgroundTransparency = 1
+			title.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(title, {TextColor3 = "Text"})
+
+			local sub = Instance.new("TextLabel", label)
+			sub.Text = subtitle
+			sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Position = UDim2.new(0, 0, 0, 22)
+			sub.Font = Enum.Font.Gotham
+			sub.TextSize = 12
+			sub.BackgroundTransparency = 1
+			sub.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(sub, {TextColor3 = "TextSub"})
+		else
+			label.Text = text
+			window:AddThemeObject(label, {TextColor3 = "Text"})
 		end
 
 		local switch = Instance.new("TextButton", frame)
@@ -1449,7 +1497,6 @@ function Library:CreateTab(name, subtitle, iconName)
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
-		window:AddThemeObject(label, {TextColor3 = "Text"})
 		window:AddThemeObject(knob, {BackgroundColor3 = "TextBtn"})
 		window:AddThemeObject(switch, {
 			BackgroundColor3 = function(obj, theme) obj.BackgroundColor3 = active and theme.Accent or theme.ToggleInactive end
@@ -1477,203 +1524,244 @@ function Library:CreateTab(name, subtitle, iconName)
 	end
 
 	function Elements:Slider(options)
-		local text = options.Title or "Slider"
-		local min = options.Min or 0
-		local max = options.Max or 100
-		local default = options.Default or min
-		local callback = options.Callback or function() end
-		local icon = options.Icon
-		local flag = options.Flag
+        local text = options.Title or "Slider"
+        local subtitle = options.Subtitle
+        local min = options.Min or 0
+        local max = options.Max or 100
+        local default = options.Default or min
+        local callback = options.Callback or function() end
+        local icon = options.Icon
+        local flag = options.Flag
 
-		if flag then
-			if window.Flags[flag] ~= nil then
-				default = window.Flags[flag]
-			else
-				window.Flags[flag] = default
-			end
-		end
+        if flag then
+            if window.Flags[flag] ~= nil then
+                default = window.Flags[flag]
+            else
+                window.Flags[flag] = default
+            end
+        end
 
-local parent = getGroup()
-		local frame = Instance.new("Frame", parent)
-		frame.Size = UDim2.new(1, 0, 0, 70) -- เพิ่มความสูงเพื่อรองรับ Min/Max
-		frame.BackgroundTransparency = 0
-		
-		local label = Instance.new("TextLabel", frame)
-		label.Text = text .. ": " .. default
-		label.Size = UDim2.new(0.35, 0, 0, 30)
-		label.Position = UDim2.new(0, 0, 0.25, 0) -- จัดกึ่งกลางกับ Slider Bar
-		label.AnchorPoint = Vector2.new(0, 0.5)
-		label.BackgroundTransparency = 1
-		label.TextXAlignment = Enum.TextXAlignment.Left
-		label.Font = Enum.Font.GothamMedium
-		label.TextSize = 15
+        local parent = getGroup()
+        local frame = Instance.new("Frame", parent)
+        frame.Size = UDim2.new(1, 0, 0, 70)
+        frame.BackgroundTransparency = 1
 
-		local padding = Instance.new("UIPadding", label)
-		padding.PaddingLeft = UDim.new(0, 15)
-		if icon then
-			window:CreateIcon(frame, icon, UDim2.new(0, 12, 0.3, 0))
-			padding.PaddingLeft = UDim.new(0, 45)
-		end
+        local label = Instance.new("TextLabel", frame)
+        label.Size = UDim2.new(0.35, 0, 0, 30)
+        label.Position = UDim2.new(0, -5, 0.25, 0)
+        label.AnchorPoint = Vector2.new(0, 0.5)
+        label.BackgroundTransparency = 1
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Font = Enum.Font.GothamMedium
+        label.TextSize = 15
 
-		local sliderContainer = Instance.new("Frame", frame)
-		sliderContainer.Size = UDim2.new(1, 0, 1, 0)
-		sliderContainer.Position = UDim2.new(0, 0, 0, 20) -- ถัดจาก Label
-		sliderContainer.BackgroundTransparency = 1
-		sliderContainer.Active = true
+        local padding = Instance.new("UIPadding", label)
+        padding.PaddingLeft = UDim.new(0, 15)
+        if icon then
+            window:CreateIcon(frame, icon, UDim2.new(0, 12, 0.3, 0))
+            padding.PaddingLeft = UDim.new(0, 45)
+        end
 
-		local bar = Instance.new("Frame", sliderContainer)
-		bar.Size = UDim2.new(1, -35, 0, 5) 
-		bar.Position = UDim2.fromScale(0.5, 0.3) -- จัดตำแหน่งแนวตั้ง
-		bar.AnchorPoint = Vector2.new(0.5, 0.5)
-		Instance.new("UICorner", bar)
+        if subtitle then
+            label.Text = ""
+            local title = Instance.new("TextLabel", label)
+            title.Text = text
+            title.Size = UDim2.new(1, 0, 0, 20)
+			title.Position = UDim2.new(0, 0, 0, 2)
+            title.Font = Enum.Font.GothamMedium
+            title.TextSize = 15
+            title.BackgroundTransparency = 1
+            title.TextXAlignment = Enum.TextXAlignment.Left
+            window:AddThemeObject(title, {TextColor3 = "Text"})
 
-		-- Min Label
-		local minLabel = Instance.new("TextLabel", sliderContainer)
-		minLabel.Text = tostring(min)
-		minLabel.Size = UDim2.new(0, 40, 0, 15)
-		minLabel.Position = UDim2.new(0, 15, 0.3, 12) -- ใต้ปลายซ้าย
-		minLabel.BackgroundTransparency = 1
-		minLabel.TextXAlignment = Enum.TextXAlignment.Left
-		minLabel.Font = Enum.Font.Gotham
-		minLabel.TextSize = 11
-		window:AddThemeObject(minLabel, {TextColor3 = "TextSub"})
+            local sub = Instance.new("TextLabel", label)
+            sub.Text = subtitle
+            sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Position = UDim2.new(0, 0, 0, 22)
+            sub.Font = Enum.Font.Gotham
+            sub.TextSize = 12
+            sub.BackgroundTransparency = 1
+            sub.TextXAlignment = Enum.TextXAlignment.Left
+            window:AddThemeObject(sub, {TextColor3 = "TextSub"})
+        else
+            label.Text = text
+            window:AddThemeObject(label, {TextColor3 = "Text"})
+        end
 
-		-- Max Label
-		local maxLabel = Instance.new("TextLabel", sliderContainer)
-		maxLabel.Text = tostring(max)
-		maxLabel.Size = UDim2.new(0, 40, 0, 15)
-		maxLabel.Position = UDim2.new(1, -15, 0.3, 12) -- ใต้ปลายขวา
-		maxLabel.AnchorPoint = Vector2.new(1, 0)
-		maxLabel.BackgroundTransparency = 1
-		maxLabel.TextXAlignment = Enum.TextXAlignment.Right
-		maxLabel.Font = Enum.Font.Gotham
-		maxLabel.TextSize = 11
-		window:AddThemeObject(maxLabel, {TextColor3 = "TextSub"})
+        local sliderContainer = Instance.new("Frame", frame)
+        sliderContainer.Size = UDim2.new(1, 0, 1, 0)
+        sliderContainer.Position = UDim2.new(0, 0, 0, 20)
+        sliderContainer.BackgroundTransparency = 1
+        sliderContainer.Active = true
 
-		local fill = Instance.new("Frame", bar)
-		fill.Size = UDim2.fromScale(math.clamp((default-min)/(max-min), 0, 1), 1)
-		Instance.new("UICorner", fill)
+        local bar = Instance.new("Frame", sliderContainer)
+        bar.Size = UDim2.new(1, -35, 0, 5)
+        bar.Position = UDim2.fromScale(0.5, 0.3)
+        bar.AnchorPoint = Vector2.new(0.5, 0.5)
+        Instance.new("UICorner", bar)
 
-		local knob = Instance.new("TextButton", bar)
-		knob.Size = UDim2.fromOffset(18, 18)
-		knob.AnchorPoint = Vector2.new(0.5, 0.5)
-		knob.Position = UDim2.fromScale(fill.Size.X.Scale, 0.5)
-		knob.Text = ""
-		knob.BackgroundTransparency = 1
-		
-		local knobShadow = Instance.new("ImageLabel", knob)
-		knobShadow.Name = "Shadow"
-		knobShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-		knobShadow.Position = UDim2.fromScale(0.5, 0.5)
-		knobShadow.Size = UDim2.new(1, 10, 1, 10)
-		knobShadow.BackgroundTransparency = 1
-		knobShadow.Image = "rbxassetid://6014261993"
-		knobShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-		knobShadow.ImageTransparency = 0.6
-		knobShadow.SliceCenter = Rect.new(49, 49, 450, 450)
-		knobShadow.ScaleType = Enum.ScaleType.Slice
-		knobShadow.ZIndex = 1
-		
-		local knobVisual = Instance.new("Frame", knob)
-		knobVisual.Size = UDim2.fromScale(1, 1)
-		knobVisual.ZIndex = 2
-		Instance.new("UICorner", knobVisual).CornerRadius = UDim.new(1, 0)
-		local knobStroke = Instance.new("UIStroke", knobVisual)
+        local minLabel = Instance.new("TextLabel", sliderContainer)
+        minLabel.Text = tostring(min)
+        minLabel.Size = UDim2.new(0, 40, 0, 15)
+        minLabel.Position = UDim2.new(0, 15, 0.3, 12)
+        minLabel.BackgroundTransparency = 1
+        minLabel.TextXAlignment = Enum.TextXAlignment.Left
+        minLabel.Font = Enum.Font.Gotham
+        minLabel.TextSize = 11
+        window:AddThemeObject(minLabel, { TextColor3 = "TextSub" })
 
-		local separator = Instance.new("Frame", frame)
-		separator.Name = "Separator"
-		separator.Size = UDim2.new(1, -20, 0, 1)
-		separator.Position = UDim2.new(0, 10, 1, -1)
-		separator.BorderSizePixel = 0
-		separator.BackgroundTransparency = 0.4
-		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
+        local maxLabel = Instance.new("TextLabel", sliderContainer)
+        maxLabel.Text = tostring(max)
+        maxLabel.Size = UDim2.new(0, 40, 0, 15)
+        maxLabel.Position = UDim2.new(1, -15, 0.3, 12)
+        maxLabel.AnchorPoint = Vector2.new(1, 0)
+        maxLabel.BackgroundTransparency = 1
+        maxLabel.TextXAlignment = Enum.TextXAlignment.Right
+        maxLabel.Font = Enum.Font.Gotham
+        maxLabel.TextSize = 11
+        window:AddThemeObject(maxLabel, { TextColor3 = "TextSub" })
 
-		frame.BackgroundTransparency = 1
-		window:AddThemeObject(label, {TextColor3 = "Text"})
-		window:AddThemeObject(bar, {BackgroundColor3 = "ToggleInactive"})
-		window:AddThemeObject(fill, {BackgroundColor3 = "Accent"})
-		window:AddThemeObject(knobVisual, {BackgroundColor3 = "ElementBG"})
-		window:AddThemeObject(knobVisual, {BackgroundColor3 = "TextBtn"})
-		window:AddThemeObject(knobStroke, {Color = "Stroke"})
+        local fill = Instance.new("Frame", bar)
+        fill.Size = UDim2.fromScale(math.clamp((default - min) / (max - min), 0, 1), 1)
+        Instance.new("UICorner", fill)
 
-		local dragging = false
-		local page = parent.Parent 
+        local knob = Instance.new("TextButton", bar)
+        knob.Size = UDim2.fromOffset(18, 18)
+        knob.AnchorPoint = Vector2.new(0.5, 0.5)
+        knob.Position = UDim2.fromScale(fill.Size.X.Scale, 0.5)
+        knob.Text = ""
+        knob.BackgroundTransparency = 1
 
-		local function update(input)
-			local inputX = input.Position.X
-			local barAbsX = bar.AbsolutePosition.X
-			local barAbsSizeX = bar.AbsoluteSize.X
-			
-			if barAbsSizeX == 0 then return end
+        local knobShadow = Instance.new("ImageLabel", knob)
+        knobShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        knobShadow.Position = UDim2.fromScale(0.5, 0.5)
+        knobShadow.Size = UDim2.new(1, 10, 1, 10)
+        knobShadow.BackgroundTransparency = 1
+        knobShadow.Image = "rbxassetid://6014261993"
+        knobShadow.ImageTransparency = 0.6
+        knobShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+        knobShadow.ScaleType = Enum.ScaleType.Slice
+        knobShadow.ZIndex = 1
 
-			local percent = math.clamp((inputX - barAbsX) / barAbsSizeX, 0, 1)
-			
-			fill.Size = UDim2.fromScale(percent, 1)
-			knob.Position = UDim2.fromScale(percent, 0.5)
-			local value = math.floor(min + (max - min) * percent + 0.5)
-			label.Text = text .. ": " .. value
-			if flag then window.Flags[flag] = value end
-			callback(value)
-		end
+        local knobVisual = Instance.new("Frame", knob)
+        knobVisual.Size = UDim2.fromScale(1, 1)
+        knobVisual.ZIndex = 2
+        Instance.new("UICorner", knobVisual).CornerRadius = UDim.new(1, 0)
+        local knobStroke = Instance.new("UIStroke", knobVisual)
 
-		local function startDrag()
-			dragging = true
-			if page and page:IsA("ScrollingFrame") then
-				page.ScrollingEnabled = false
-			end
-		end
-		
-		local function endDrag()
-			if not dragging then return end
-			dragging = false
-			if page and page:IsA("ScrollingFrame") then
-				page.ScrollingEnabled = true
-			end
-		end
+        local valuePopup = Instance.new("CanvasGroup", knob)
+        valuePopup.Size = UDim2.fromOffset(32, 28)
+        valuePopup.Position = UDim2.new(0.5, 0, 0, -5)
+        valuePopup.AnchorPoint = Vector2.new(0.5, 1)
+        valuePopup.GroupTransparency = 1
+        valuePopup.Visible = false
+        valuePopup.ZIndex = knob.ZIndex + 10
+        valuePopup.BackgroundTransparency = 1
 
-		knob.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				startDrag()
-			end
-		end)
+        local popupBody = Instance.new("Frame", valuePopup)
+        popupBody.Size = UDim2.new(1, 0, 1, -6)
+        Instance.new("UICorner", popupBody).CornerRadius = UDim.new(0, 4)
 
-		bar.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				startDrag()
-				update(input) -- Immediately jump to position
-			end
-		end)
+        -- FIXED TAIL (NO ASSET)
+        local tail = Instance.new("Frame", valuePopup)
+        tail.Size = UDim2.fromOffset(8, 8)
+        tail.Position = UDim2.new(0.5, 0, 0.85, -2)
+        tail.AnchorPoint = Vector2.new(0.5, 0.5)
+        tail.Rotation = 45
+        tail.BorderSizePixel = 0
+        tail.ZIndex = popupBody.ZIndex + 1
+        Instance.new("UICorner", tail).CornerRadius = UDim.new(0, 1)
 
-		table.insert(window.Connections, UserInputService.InputChanged:Connect(function(input)
-			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-				update(input)
-			end
-		end))
+        local valueText = Instance.new("TextLabel", popupBody)
+        valueText.Size = UDim2.fromScale(1, 1)
+        valueText.BackgroundTransparency = 1
+        valueText.Font = Enum.Font.GothamMedium
+        valueText.TextSize = 12
+        valueText.Text = tostring(math.floor(default + 0.5))
 
-		table.insert(window.Connections, UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				endDrag()
-			end
-		end))
+        window:AddThemeObject(popupBody, { BackgroundColor3 = "Accent" })
+        window:AddThemeObject(tail, { BackgroundColor3 = "Accent" })
+        window:AddThemeObject(valueText, { TextColor3 = "TextBtn" })
+        window:AddThemeObject(bar, { BackgroundColor3 = "ToggleInactive" })
+        window:AddThemeObject(fill, { BackgroundColor3 = "Accent" })
+        window:AddThemeObject(knobVisual, { BackgroundColor3 = "TextBtn" })
+        window:AddThemeObject(knobStroke, { Color = "Stroke" })
 
-		if flag then
-			window.ConfigUpdates[flag] = function(newVal)
-				local value = math.clamp(tonumber(newVal) or default, min, max)
-				local percent = (value - min) / (max - min)
-				fill.Size = UDim2.fromScale(percent, 1)
-				knob.Position = UDim2.fromScale(percent, 0.5)
-				label.Text = text .. ": " .. value
-				callback(value)
-			end
-		end
-		updateGroupSeparators(parent)
-	end
+        local dragging = false
+        local page = parent.Parent
+
+        local function update(input)
+            local percent = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+            fill.Size = UDim2.fromScale(percent, 1)
+            knob.Position = UDim2.fromScale(percent, 0.5)
+            local value = math.floor(min + (max - min) * percent + 0.5)
+            valueText.Text = tostring(value)
+            if flag then window.Flags[flag] = value end
+            callback(value)
+        end
+
+        local function startDrag()
+            dragging = true
+            valuePopup.Visible = true
+            TweenService:Create(valuePopup, TweenInfo.new(0.2), {
+                Position = UDim2.new(0.5, 0, 0, -12),
+                GroupTransparency = 0
+            }):Play()
+            if page and page:IsA("ScrollingFrame") then
+                page.ScrollingEnabled = false
+            end
+        end
+
+        local function endDrag()
+            dragging = false
+            TweenService:Create(valuePopup, TweenInfo.new(0.2), {
+                Position = UDim2.new(0.5, 0, 0, -5),
+                GroupTransparency = 1
+            }):Play()
+            task.delay(0.2, function()
+                if not dragging then valuePopup.Visible = false end
+            end)
+            if page and page:IsA("ScrollingFrame") then
+                page.ScrollingEnabled = true
+            end
+        end
+
+        knob.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then startDrag() end
+        end)
+
+        bar.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                startDrag()
+                update(i)
+            end
+        end)
+
+        table.insert(window.Connections, UserInputService.InputChanged:Connect(function(i)
+            if dragging then update(i) end
+        end))
+
+        table.insert(window.Connections, UserInputService.InputEnded:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then endDrag() end
+        end))
+
+        local separator = Instance.new("Frame", frame)
+        separator.Name = "Separator"
+        separator.Size = UDim2.new(1, -20, 0, 1)
+        separator.Position = UDim2.new(0, 10, 1, -1)
+        separator.BorderSizePixel = 0
+        separator.BackgroundTransparency = 0.4
+        window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
+
+        updateGroupSeparators(parent)
+    end
 
 	function Elements:Dropdown(options)
 		local text = options.Title or "Dropdown"
+		local subtitle = options.Subtitle
 		local values = options.Values or {}
 		local multi = options.Multi or false
-		local default = options.Default or (multi and {} or values[1])
+		local default = options.Default or (multi and {} or nil)
 		local callback = options.Callback or function() end
 		local icon = options.Icon
 		local flag = options.Flag
@@ -1695,7 +1783,6 @@ local parent = getGroup()
 		frame.BackgroundTransparency = 0
 
 		local label = Instance.new("TextLabel", frame)
-		label.Text = text
 		label.Size = UDim2.new(0.4, 0, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1709,12 +1796,38 @@ local parent = getGroup()
 			padding.PaddingLeft = UDim.new(0, 40)
 		end
 
+		if subtitle then
+			label.Text = ""
+			local title = Instance.new("TextLabel", label)
+			title.Text = text
+			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Position = UDim2.new(0, 0, 0, -4)
+			title.Font = Enum.Font.GothamMedium
+			title.TextSize = 15
+			title.BackgroundTransparency = 1
+			title.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(title, {TextColor3 = "Text"})
+
+			local sub = Instance.new("TextLabel", label)
+			sub.Text = subtitle
+			sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Position = UDim2.new(0, 0, 0, 22)
+			sub.Font = Enum.Font.Gotham
+			sub.TextSize = 12
+			sub.BackgroundTransparency = 1
+			sub.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(sub, {TextColor3 = "TextSub"})
+		else
+			label.Text = text
+			window:AddThemeObject(label, {TextColor3 = "Text"})
+		end
+
         local function getValText()
             if multi then
                 if #default == 0 then return "None" end
                 return table.concat(default, ", ")
             else
-                return tostring(default)
+                return default ~= nil and tostring(default) or "None"
             end
         end
 
@@ -1766,7 +1879,6 @@ local parent = getGroup()
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
-		window:AddThemeObject(label, {TextColor3 = "Text"})
 		window:AddThemeObject(valueBtn, {TextColor3 = "TextSub", BackgroundColor3 = "Text"})
 		window:AddThemeObject(arrowBox, {BackgroundColor3 = "Stroke"})
 
@@ -1929,19 +2041,32 @@ local parent = getGroup()
 
 		-- Cycle Logic (Disabled for Multi)
         local function cycle(dir)
-            if multi then return end -- Disable cycling logic for multi
-            local current = tostring(default)
-            local idx = 1
-            for i, v in ipairs(values) do
-                if tostring(v) == current then
-                    idx = i
-                    break
+            if multi then return end
+            if #values == 0 then return end
+
+            local currentIdx = 0
+            if default ~= nil then
+                local current = tostring(default)
+                for i, v in ipairs(values) do
+                    if tostring(v) == current then
+                        currentIdx = i
+                        break
+                    end
                 end
             end
+
+            local nextIdx
+            if currentIdx == 0 then
+                nextIdx = (dir > 0) and 1 or #values
+            else
+                nextIdx = currentIdx + dir
+                if nextIdx > #values then nextIdx = 1 end
+                if nextIdx < 1 then nextIdx = #values end
+            end
             
-            idx = idx + dir
-            if idx < 1 then idx = #values elseif idx > #values then idx = 1 end
-            updateValue(values[idx])
+            if values[nextIdx] then
+                updateValue(values[nextIdx])
+            end
         end
 
         upBtn.MouseButton1Click:Connect(function() cycle(-1) end)
@@ -1968,6 +2093,7 @@ local parent = getGroup()
 		local items = options.Options or options.Values or {}
 		local default = options.Default
 		local callback = options.Callback or function() end
+		local subtitle = options.Subtitle
 		local flag = options.Flag
 
 		if flag then
@@ -1998,6 +2124,22 @@ local parent = getGroup()
 			headerLabel.TextSize = 14
 			headerLabel.TextXAlignment = Enum.TextXAlignment.Left
 			window:AddThemeObject(headerLabel, {TextColor3 = "TextSub"})
+
+			if subtitle then
+				headerFrame.Size = UDim2.new(1, 0, 0, 45)
+				headerLabel.Position = UDim2.new(0, 15, 0, 5)
+				headerLabel.Size = UDim2.new(1, -20, 0, 20)
+				
+				local subLabel = Instance.new("TextLabel", headerFrame)
+				subLabel.Text = subtitle
+				subLabel.Size = UDim2.new(1, -20, 0, 15)
+				subLabel.Position = UDim2.new(0, 15, 0, 25)
+				subLabel.BackgroundTransparency = 1
+				subLabel.Font = Enum.Font.Gotham
+				subLabel.TextSize = 12
+				subLabel.TextXAlignment = Enum.TextXAlignment.Left
+				window:AddThemeObject(subLabel, {TextColor3 = "TextSub"})
+			end
 		end
 
 		local buttons = {}
@@ -2022,7 +2164,7 @@ local parent = getGroup()
 
 		for i, item in ipairs(items) do
 			local frame = Instance.new("TextButton", parent)
-			frame.Size = UDim2.new(1, 0, 0, 35)
+			frame.Size = UDim2.new(1, 0, 0, 30)
 			frame.BackgroundTransparency = 1
 			frame.Text = ""
 			frame.AutoButtonColor = false
@@ -2151,7 +2293,7 @@ local parent = getGroup()
 		corner.CornerRadius = UDim.new(0, 7)
 		
 		local stroke = Instance.new("UIStroke", consoleFrame)
-		stroke.Transparency = 0.6
+		stroke.Transparency = 0
 		window:AddThemeObject(stroke, {Color = "Stroke"})
 
 		local layout = Instance.new("UIListLayout", consoleFrame)
@@ -2255,6 +2397,7 @@ local parent = getGroup()
 
 	function Elements:Popup(options)
 		local text = options.Title or "Popup Button"
+		local subtitle = options.Subtitle
 		local msg = options.Message or "Are you sure?"
 		local onConfirm = options.onConfirm or function() end
 		local onCancel = options.onCancel or function() end
@@ -2263,7 +2406,6 @@ local parent = getGroup()
 		local parent = getGroup()
 		local btn = Instance.new("TextButton", parent)
 		btn.Size = UDim2.new(1, 0, 0, 42)
-		btn.Text = text
 		btn.Font = Enum.Font.GothamBold
 		btn.TextSize = 15
 		
@@ -2288,9 +2430,32 @@ local parent = getGroup()
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		btn.BackgroundTransparency = 1
-		window:AddThemeObject(btn, {
-			TextColor3 = "Text"
-		})
+
+		if subtitle then
+			btn.Text = ""
+			local title = Instance.new("TextLabel", btn)
+			title.Text = text
+			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Position = UDim2.new(0, 0, 0, 2)
+			title.Font = Enum.Font.GothamBold
+			title.TextSize = 15
+			title.BackgroundTransparency = 1
+			title.TextXAlignment = (icon or options.TextXAlignment == Enum.TextXAlignment.Left) and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center
+			window:AddThemeObject(title, {TextColor3 = "Text"})
+
+			local sub = Instance.new("TextLabel", btn)
+			sub.Text = subtitle
+			sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Position = UDim2.new(0, 0, 0, 16)
+			sub.Font = Enum.Font.Gotham
+			sub.TextSize = 12
+			sub.BackgroundTransparency = 1
+			sub.TextXAlignment = title.TextXAlignment
+			window:AddThemeObject(sub, {TextColor3 = "TextSub"})
+		else
+			btn.Text = text
+			window:AddThemeObject(btn, {TextColor3 = "Text"})
+		end
 		
 		btn.MouseButton1Click:Connect(function()
 			window:ShowPopup(text, msg, onConfirm, onCancel)
@@ -2300,6 +2465,7 @@ local parent = getGroup()
 
 	function Elements:Keybind(options)
 		local text = options.Title or "Keybind"
+		local subtitle = options.Subtitle
 		local default = options.Default or Enum.KeyCode.RightControl
 		local callback = options.Callback or function() end
 		local changedCallback = options.ChangedCallback or function() end
@@ -2320,7 +2486,6 @@ local parent = getGroup()
 		frame.BackgroundTransparency = 0
 
 		local label = Instance.new("TextLabel", frame)
-		label.Text = text
 		label.Size = UDim2.new(1, -100, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
@@ -2333,6 +2498,32 @@ local parent = getGroup()
 		if icon then
 			window:CreateIcon(frame, icon, UDim2.new(0, 12, 0.5, 0))
 			padding.PaddingLeft = UDim.new(0, 40)
+		end
+
+		if subtitle then
+			label.Text = ""
+			local title = Instance.new("TextLabel", label)
+			title.Text = text
+			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Position = UDim2.new(0, 0, 0, 2)
+			title.Font = Enum.Font.GothamMedium
+			title.TextSize = 15
+			title.BackgroundTransparency = 1
+			title.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(title, {TextColor3 = "Text"})
+
+			local sub = Instance.new("TextLabel", label)
+			sub.Text = subtitle
+			sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Position = UDim2.new(0, 0, 0, 22)
+			sub.Font = Enum.Font.Gotham
+			sub.TextSize = 12
+			sub.BackgroundTransparency = 1
+			sub.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(sub, {TextColor3 = "TextSub"})
+		else
+			label.Text = text
+			window:AddThemeObject(label, {TextColor3 = "Text"})
 		end
 
 		local btn = Instance.new("TextButton", frame)
@@ -2357,7 +2548,6 @@ local parent = getGroup()
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
-		window:AddThemeObject(label, {TextColor3 = "Text"})
 		window:AddThemeObject(btn, {BackgroundColor3 = "Sidebar", TextColor3 = "TextSub"})
 		window:AddThemeObject(stroke, {Color = "Stroke"})
 
@@ -2400,6 +2590,7 @@ local parent = getGroup()
 
 	function Elements:Input(options)
 		local text = options.Title or "Input"
+		local subtitle = options.Subtitle
 		local placeholder = options.Placeholder or "Type here..."
 		local default = options.Default or ""
 		local callback = options.Callback or function() end
@@ -2426,7 +2617,6 @@ local parent = getGroup()
 		frame.BackgroundTransparency = 0
 
 		local label = Instance.new("TextLabel", frame)
-		label.Text = text
 		label.Size = UDim2.new(0.4, 0, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
@@ -2438,6 +2628,32 @@ local parent = getGroup()
 		if icon then
 			window:CreateIcon(frame, icon, UDim2.new(0, 12, 0.5, 0))
 			padding.PaddingLeft = UDim.new(0, 40)
+		end
+
+		if subtitle then
+			label.Text = ""
+			local title = Instance.new("TextLabel", label)
+			title.Text = text
+			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Position = UDim2.new(0, 0, 0, 2)
+			title.Font = Enum.Font.GothamMedium
+			title.TextSize = 15
+			title.BackgroundTransparency = 1
+			title.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(title, {TextColor3 = "Text"})
+
+			local sub = Instance.new("TextLabel", label)
+			sub.Text = subtitle
+			sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Position = UDim2.new(0, 0, 0, 22)
+			sub.Font = Enum.Font.Gotham
+			sub.TextSize = 12
+			sub.BackgroundTransparency = 1
+			sub.TextXAlignment = Enum.TextXAlignment.Left
+			window:AddThemeObject(sub, {TextColor3 = "TextSub"})
+		else
+			label.Text = text
+			window:AddThemeObject(label, {TextColor3 = "Text"})
 		end
 
 		local input = Instance.new("TextBox", frame)
@@ -2465,7 +2681,6 @@ local parent = getGroup()
 		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
 		frame.BackgroundTransparency = 1
-		window:AddThemeObject(label, {TextColor3 = "Text"})
 		window:AddThemeObject(input, {TextColor3 = "TextSub", PlaceholderColor3 = "TextSub"})
 
 		input.FocusLost:Connect(function()
