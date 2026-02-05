@@ -1728,10 +1728,11 @@ function Library:CreateTab(name, subtitle, iconName)
 
         knob.InputBegan:Connect(function(i)
             if i.UserInputType == Enum.UserInputType.MouseButton1 then startDrag() end
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then startDrag() end
         end)
 
         bar.InputBegan:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
                 startDrag()
                 update(i)
             end
@@ -1739,10 +1740,12 @@ function Library:CreateTab(name, subtitle, iconName)
 
         table.insert(window.Connections, UserInputService.InputChanged:Connect(function(i)
             if dragging then update(i) end
+            if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then update(i) end
         end))
 
         table.insert(window.Connections, UserInputService.InputEnded:Connect(function(i)
             if i.UserInputType == Enum.UserInputType.MouseButton1 then endDrag() end
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then endDrag() end
         end))
 
         local separator = Instance.new("Frame", frame)
