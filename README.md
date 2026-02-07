@@ -97,8 +97,9 @@ MainTab:Button({
 
 ### Toggle
 Supports `Flag` for config saving.
+Returns an object with `:OnChanged(callback)` and `:Set(value)`.
 ```lua
-MainTab:Toggle({
+local MyToggle = MainTab:Toggle({
     Title = "Toggle",
     Icon = "lucide:a-arrow-up", -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
     Default = false,
@@ -107,6 +108,13 @@ MainTab:Toggle({
         print("Auto Attack:", value)
     end
 })
+
+MyToggle:OnChanged(function(value)
+    print("Toggle changed to:", value)
+end)
+
+-- Programmatically set value
+-- MyToggle:Set(true)
 ```
 
 ### Slider
