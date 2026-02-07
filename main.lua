@@ -78,13 +78,28 @@ function Library.CreateWindow(options)
 	-- Config System
 	self.Flags = {}
 	self.ConfigUpdates = {}
+	self.AutoSave = options.AutoSaveSetting
+
+	local saveDebounce = false
+	function self:SetFlag(flag, value)
+		self.Flags[flag] = value
+		if self.AutoSave then
+			if not saveDebounce then
+				saveDebounce = true
+				task.delay(1, function()
+					self:SaveConfig(self.Folder or "AutoSave")
+					saveDebounce = false
+				end)
+			end
+		end
+	end
 	
 	self.Switch = setmetatable({}, {
 		__index = function(_, key)
 			return self.Flags[key]
 		end,
 		__newindex = function(_, key, value)
-			self.Flags[key] = value
+			self:SetFlag(key, value)
 			if self.ConfigUpdates[key] then
 				self.ConfigUpdates[key](value)
 			end
@@ -1421,6 +1436,8 @@ function Library:CreateTab(name, subtitle, iconName)
 		local icon = options.Icon
 		local flag = options.Flag
 
+		local extraCallback = nil
+
 		if flag then
 			if window.Flags[flag] ~= nil then
 				default = window.Flags[flag]
@@ -1504,11 +1521,12 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		switch.MouseButton1Click:Connect(function()
 			active = not active
-			if flag then window.Flags[flag] = active end
+			if flag then window:SetFlag(flag, active) end
 			local theme = window.CurrentTheme
 			TweenService:Create(knob, TweenInfo.new(0.25), {Position = active and UDim2.fromOffset(18, 2) or UDim2.fromOffset(2, 2)}):Play()
 			TweenService:Create(switch, TweenInfo.new(0.25), {BackgroundColor3 = active and theme.Accent or theme.ToggleInactive}):Play()
 			callback(active)
+			if extraCallback then extraCallback(active) end
 		end)
 
 		if flag then
@@ -1518,9 +1536,28 @@ function Library:CreateTab(name, subtitle, iconName)
 				TweenService:Create(knob, TweenInfo.new(0.25), {Position = active and UDim2.fromOffset(18, 2) or UDim2.fromOffset(2, 2)}):Play()
 				TweenService:Create(switch, TweenInfo.new(0.25), {BackgroundColor3 = active and theme.Accent or theme.ToggleInactive}):Play()
 				callback(newVal)
+				if extraCallback then extraCallback(newVal) end
 			end
 		end
 		updateGroupSeparators(parent)
+
+		local toggleFuncs = {}
+		function toggleFuncs:OnChanged(fn)
+			extraCallback = fn
+		end
+		
+		function toggleFuncs:Set(value)
+			active = value
+			if flag then window.Flags[flag] = active end
+			if flag then window:SetFlag(flag, active) end
+			local theme = window.CurrentTheme
+			TweenService:Create(knob, TweenInfo.new(0.25), {Position = active and UDim2.fromOffset(18, 2) or UDim2.fromOffset(2, 2)}):Play()
+			TweenService:Create(switch, TweenInfo.new(0.25), {BackgroundColor3 = active and theme.Accent or theme.ToggleInactive}):Play()
+			callback(active)
+			if extraCallback then extraCallback(active) end
+		end
+
+		return toggleFuncs
 	end
 
 	function Elements:Slider(options)
@@ -1532,6 +1569,7 @@ function Library:CreateTab(name, subtitle, iconName)
         local callback = options.Callback or function() end
         local icon = options.Icon
         local flag = options.Flag
+        local extraCallback = nil
 
         if flag then
             if window.Flags[flag] ~= nil then
@@ -1696,8 +1734,9 @@ function Library:CreateTab(name, subtitle, iconName)
             knob.Position = UDim2.fromScale(percent, 0.5)
             local value = math.floor(min + (max - min) * percent + 0.5)
             valueText.Text = tostring(value)
-            if flag then window.Flags[flag] = value end
+			if flag then window:SetFlag(flag, value) end
             callback(value)
+            if extraCallback then extraCallback(value) end
         end
 
         local function startDrag()
@@ -1768,6 +1807,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		local callback = options.Callback or function() end
 		local icon = options.Icon
 		local flag = options.Flag
+        local extraCallback = nil
 
 		if flag then
 			if window.Flags[flag] ~= nil then
@@ -1899,8 +1939,10 @@ function Library:CreateTab(name, subtitle, iconName)
             end
             
             valueBtn.Text = getValText()
-			if flag then window.Flags[flag] = default end
+			if flag then window:SetFlag(flag, default) end
+			if flag then window:SetFlag(flag, default) end
 			callback(default)
+            if extraCallback then extraCallback(default) end
 		end
 
 		-- Popup Logic
@@ -2081,6 +2123,7 @@ function Library:CreateTab(name, subtitle, iconName)
                 default = newVal
 				valueBtn.Text = getValText()
 				callback(default)
+                if extraCallback then extraCallback(default) end
 			end
 		end
 		updateGroupSeparators(parent)
@@ -2089,6 +2132,12 @@ function Library:CreateTab(name, subtitle, iconName)
 		function dropdownFuncs:Refresh(newValues)
 			if newValues then values = newValues end
 		end
+        function dropdownFuncs:OnChanged(fn)
+            extraCallback = fn
+        end
+        function dropdownFuncs:Set(val)
+            updateValue(val)
+        end
 		return dropdownFuncs
 	end
 
@@ -2098,6 +2147,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		local callback = options.Callback or function() end
 		local subtitle = options.Subtitle
 		local flag = options.Flag
+        local extraCallback = nil
 
 		if flag then
 			if window.Flags[flag] ~= nil then
@@ -2228,8 +2278,9 @@ function Library:CreateTab(name, subtitle, iconName)
 			frame.MouseButton1Click:Connect(function()
 				if currentVal ~= item then
 					currentVal = item
-					if flag then window.Flags[flag] = currentVal end
+					if flag then window:SetFlag(flag, currentVal) end
 					callback(currentVal)
+                    if extraCallback then extraCallback(currentVal) end
 					updateVisuals()
 				end
 			end)
@@ -2265,11 +2316,26 @@ function Library:CreateTab(name, subtitle, iconName)
 			window.ConfigUpdates[flag] = function(newVal)
 				currentVal = newVal
 				callback(currentVal)
+                if extraCallback then extraCallback(currentVal) end
 				updateVisuals()
 			end
 		end
 		
 		updateGroupSeparators(parent)
+
+        local radioFuncs = {}
+        function radioFuncs:OnChanged(fn)
+            extraCallback = fn
+        end
+        function radioFuncs:Set(value)
+            currentVal = value
+            if flag then window.Flags[flag] = currentVal end
+            if flag then window:SetFlag(flag, currentVal) end
+            callback(currentVal)
+            if extraCallback then extraCallback(currentVal) end
+            updateVisuals()
+        end
+        return radioFuncs
 	end
 
 		function Elements:Console(options)
@@ -2474,6 +2540,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		local changedCallback = options.ChangedCallback or function() end
 		local icon = options.Icon
 		local flag = options.Flag
+        local extraCallback = nil
 
 		if flag then
 			if window.Flags[flag] ~= nil then
@@ -2569,8 +2636,9 @@ function Library:CreateTab(name, subtitle, iconName)
 					btn.TextColor3 = window.CurrentTheme.TextSub
 					stroke.Color = window.CurrentTheme.Stroke
 					listening = false
-					if flag then window.Flags[flag] = key.Name end
+					if flag then window:SetFlag(flag, key.Name) end
 					changedCallback(key)
+                    if extraCallback then extraCallback(key) end
 				end
 			elseif not gameProcessed and input.KeyCode == key then
 				callback()
@@ -2586,9 +2654,24 @@ function Library:CreateTab(name, subtitle, iconName)
 				key = newVal
 				btn.Text = key.Name
 				changedCallback(key)
+                if extraCallback then extraCallback(key) end
 			end
 		end
 		updateGroupSeparators(parent)
+
+        local keybindFuncs = {}
+        function keybindFuncs:OnChanged(fn)
+            extraCallback = fn
+        end
+        function keybindFuncs:Set(newKey)
+            key = newKey
+            btn.Text = key.Name
+            if flag then window.Flags[flag] = key.Name end
+            if flag then window:SetFlag(flag, key.Name) end
+            changedCallback(key)
+            if extraCallback then extraCallback(key) end
+        end
+        return keybindFuncs
 	end
 
 	function Elements:Input(options)
@@ -2599,6 +2682,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		local callback = options.Callback or function() end
 		local icon = options.Icon
 		local flag = options.Flag
+        local extraCallback = nil
 
 		if flag then
 			if window.Flags[flag] ~= nil then
@@ -2687,17 +2771,35 @@ function Library:CreateTab(name, subtitle, iconName)
 		window:AddThemeObject(input, {TextColor3 = "TextSub", PlaceholderColor3 = "TextSub"})
 
 		input.FocusLost:Connect(function()
-			if flag then window.Flags[flag] = input.Text end
+			if flag then window:SetFlag(flag, input.Text) end
 			callback(input.Text)
 		end)
+        
+        input:GetPropertyChangedSignal("Text"):Connect(function()
+            if extraCallback then extraCallback(input.Text) end
+        end)
 
 		if flag then
 			window.ConfigUpdates[flag] = function(newVal)
 				input.Text = tostring(newVal)
 				callback(newVal)
+                if extraCallback then extraCallback(newVal) end
 			end
 		end
 		updateGroupSeparators(parent)
+
+        local inputFuncs = {}
+        function inputFuncs:OnChanged(fn)
+            extraCallback = fn
+        end
+        function inputFuncs:Set(text)
+            input.Text = text
+            if flag then window.Flags[flag] = text end
+            if flag then window:SetFlag(flag, text) end
+            callback(text)
+            if extraCallback then extraCallback(text) end
+        end
+        return inputFuncs
 	end
 
 	function Elements:Space()
