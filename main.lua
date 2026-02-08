@@ -87,7 +87,7 @@ function Library.CreateWindow(options)
 			if not saveDebounce then
 				saveDebounce = true
 				task.delay(1, function()
-					self:SaveConfig(self.Folder or "AutoSave")
+					self:SaveConfig(self.FileName or self.Folder or "MacHub Premium")
 					saveDebounce = false
 				end)
 			end
@@ -112,6 +112,7 @@ function Library.CreateWindow(options)
 			if not isfolder(self.Folder) then makefolder(self.Folder) end
 			path = self.Folder .. "/" .. name
 		end
+		self.FileName = name
 		local json = HttpService:JSONEncode(self.Flags)
 		writefile(path .. ".json", json)
 	end
@@ -121,6 +122,7 @@ function Library.CreateWindow(options)
 		if self.Folder then
 			path = self.Folder .. "/" .. name
 		end
+		self.FileName = name
 		if isfile(path .. ".json") then
 			local json = readfile(path .. ".json")
 			local data = HttpService:JSONDecode(json)

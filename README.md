@@ -34,12 +34,13 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/arsyn
 ```lua
 local Window = Library.CreateWindow({
 	Title = "MacHub Premium",
+	Folder = "MacHub Premium",
+    AutoSaveSetting = true,
 	Size = UDim2.fromOffset(550, 350),
 	Position = UDim2.fromScale(0.5, 0.5),
 	AnchorPoint = Vector2.new(0.5, 0.5),
 	Theme = "Light", -- Light, Dark, Purple
 	ToggleKey = Enum.KeyCode.RightControl,
-	Folder = "MacHub Premium",
 })
 ```
 
@@ -72,13 +73,13 @@ local MainTab = Window:CreateTab({
 ### Section
 Used to group elements visually.
 ```lua
-MainTab:Section({ 
+local MySection = MainTab:Section({ 
     Title = "Selection", 
     Subtitle = "Hello World" 
 })
 
 -- Update New Text
-MainTab:SetText({ 
+MySection:SetText({ 
     Title = "Update Selection", 
     Subtitle = "The quick brown fox jumps over the lazy dog" 
 })
@@ -101,9 +102,9 @@ Returns an object with `:OnChanged(callback)` and `:Set(value)`.
 ```lua
 local MyToggle = MainTab:Toggle({
     Title = "Toggle",
-    Icon = "lucide:a-arrow-up", -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+    Flag = "Toggle",
+    Icon = "lucide:a-arrow-up",
     Default = false,
-    Flag = "Toggle", -- Unique identifier for config
     Callback = function(value)
         print("Auto Attack:", value)
     end
@@ -113,6 +114,7 @@ MyToggle:OnChanged(function(value)
     print("Toggle changed to:", value)
 end)
 
+-- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
 -- Programmatically set value
 -- MyToggle:Set(true)
 ```
@@ -122,7 +124,7 @@ Supports `Flag` for config saving.
 ```lua
 MainTab:Slider({
     Title = "Slider",
-    Icon = "lucide:a-arrow-up", -- Icon = "lucide:a-arrow-up" or Icon = "Solar:4-k-bold"
+    Icon = "lucide:a-arrow-up",
     Min = 16,
     Max = 100,
     Default = 16,
@@ -138,11 +140,11 @@ Supports `Flag` for config saving.
 ```lua
 local DropDown = MainTab:Dropdown({
     Title = "Select Weapon",
+    Flag = "WeaponSelector",
     Icon = "lucide:a-arrow-up",
+    Multi = true, -- Multiple selection
     Values = {"Melee", "Sword", "Fruit"},
     Value = "Melee", -- Default
-    Multi = true, -- Multiple selection
-    Flag = "WeaponSelector",
     Callback = function(value)
         print("Selected:", value)
     end
@@ -158,9 +160,9 @@ DropDown:Refresh({"Player1", "Player2", "Player3", "NewPlayer"})
 ```lua
 MainTab:Radio({
     Title = "Select Mode",     
-    Options = {"Legit", "Rage", "Semi-Rage"}, 
-    Default = "Legit",         
     Flag = "Select Mode",     
+    Default = "Legit",         
+    Options = {"Legit", "Rage", "Semi-Rage"}, 
     Callback = function(value)
         print("Selected Mode:", value)
     end
