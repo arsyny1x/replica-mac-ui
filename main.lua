@@ -1729,16 +1729,42 @@ function Library:CreateTab(name, subtitle, iconName)
 
         local dragging = false
         local page = parent.Parent
+        local currentValue = math.clamp(default, min, max)
+
+        local function applyVisual(percent, animate)
+            percent = math.clamp(percent, 0, 1)
+            if animate then
+                TweenService:Create(fill, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromScale(percent, 1)}):Play()
+                TweenService:Create(knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.fromScale(percent, 0.5)}):Play()
+            else
+                fill.Size = UDim2.fromScale(percent, 1)
+                knob.Position = UDim2.fromScale(percent, 0.5)
+            end
+        end
+
+        local function setValue(newVal, doCallback, animate)
+            if typeof(newVal) ~= "number" then return end
+            if doCallback == nil then doCallback = true end
+            if animate == nil then animate = true end
+            newVal = math.clamp(math.floor(newVal + 0.5), min, max)
+            currentValue = newVal
+            local percent = 0
+            if max ~= min then
+                percent = (newVal - min) / (max - min)
+            end
+            applyVisual(percent, animate)
+            valueText.Text = tostring(newVal)
+            if flag then window:SetFlag(flag, newVal) end
+            if doCallback then
+                callback(newVal)
+                if extraCallback then extraCallback(newVal) end
+            end
+        end
 
         local function update(input)
             local percent = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-            fill.Size = UDim2.fromScale(percent, 1)
-            knob.Position = UDim2.fromScale(percent, 0.5)
             local value = math.floor(min + (max - min) * percent + 0.5)
-            valueText.Text = tostring(value)
-			if flag then window:SetFlag(flag, value) end
-            callback(value)
-            if extraCallback then extraCallback(value) end
+            setValue(value, true, false)
         end
 
         local function startDrag()
@@ -1789,6 +1815,30 @@ function Library:CreateTab(name, subtitle, iconName)
             if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then endDrag() end
         end))
 
+        -- Programmatic API (WindUI-style): knob follows script value
+        if flag then
+            window.ConfigUpdates[flag] = function(newVal)
+                setValue(newVal, true, true)
+            end
+        end
+
+        local sliderFuncs = {}
+        function sliderFuncs:Set(value)
+            setValue(value, true, true)
+        end
+        function sliderFuncs:SetValue(value)
+            setValue(value, true, true)
+        end
+        function sliderFuncs:Get()
+            return currentValue
+        end
+        function sliderFuncs:GetValue()
+            return currentValue
+        end
+        function sliderFuncs:OnChanged(fn)
+            extraCallback = fn
+        end
+
         local separator = Instance.new("Frame", frame)
         separator.Name = "Separator"
         separator.Size = UDim2.new(1, -20, 0, 1)
@@ -1798,6 +1848,8 @@ function Library:CreateTab(name, subtitle, iconName)
         window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
 
         updateGroupSeparators(parent)
+
+        return sliderFuncs
     end
 
 	function Elements:Dropdown(options)

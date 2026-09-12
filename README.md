@@ -121,8 +121,9 @@ end)
 
 ### Slider
 Supports `Flag` for config saving.
+Returns an object with `:Set(value)` / `:SetValue(value)`, `:Get()`, and `:OnChanged(callback)` — WindUI style. Knob + fill tween automatically when value is changed from script.
 ```lua
-MainTab:Slider({
+local MySlider = MainTab:Slider({
     Title = "Slider",
     Icon = "lucide:a-arrow-up",
     Min = 16,
@@ -133,6 +134,22 @@ MainTab:Slider({
         print("Slider value:", value)
     end
 })
+
+-- Extra listener (does not replace Callback)
+MySlider:OnChanged(function(value)
+    print("Slider changed to:", value)
+end)
+
+-- Programmatically set value (knob moves automatically)
+MySlider:Set(50)
+MySlider:SetValue(80) -- alias, same as :Set()
+
+-- Read current value
+print(MySlider:Get())
+
+-- Via Flag (also moves knob automatically)
+Window.Switch.Slider = 30
+print(Window.Flags.Slider)
 ```
 
 ### Dropdown
