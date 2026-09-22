@@ -3,6 +3,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local GuiService = game:GetService("GuiService")
+local TextService = game:GetService("TextService")
 local player = Players.LocalPlayer
 local playerGui = gethui()
 
@@ -15,6 +16,7 @@ end
 
 local Library = {}
 Library.__index = Library
+Library.Version = "2.5.0"
 
 function Library.CreateWindow(options)
 	local self = setmetatable({}, Library)
@@ -33,8 +35,29 @@ function Library.CreateWindow(options)
 	local position = options.Position or UDim2.fromScale(0.5, 0.5)
 	local dockIcon = options.DockIcon or "external-link"
 	
-	self.HeadFontSize = options.HeadFontSize or 14
+	self.HeadFontSize = options.HeadFontSize or 17
 	self.BodyFontSize = options.BodyFontSize or 12
+
+	-- [iOS vibrancy] translucent frosted-glass look (Roblox has no backdrop-blur, so translucency fakes it)
+	self.Vibrancy = options.Vibrancy
+	if self.Vibrancy == nil then self.Vibrancy = false end
+	self.VibrancyAmount = options.VibrancyAmount or 0.07
+
+	-- [Liquid Glass] iOS-style frosted glass: translucent layers + sheen + luminous edge
+	-- (Roblox cannot backdrop-blur, so frost is faked with translucency + white haze + glow edge)
+	self.LiquidGlass = options.LiquidGlass
+	if self.LiquidGlass == nil then self.LiquidGlass = false end
+
+	-- [iPhone SF font] BuilderSans is the closest to SF Pro on Roblox, fallback to Gotham
+	local function pickFont(name, fallback)
+		local ok, f = pcall(function() return Enum.Font[name] end)
+		if ok and f ~= nil then return f end
+		return Enum.Font[fallback]
+	end
+	self.FontRegular = options.FontRegular or pickFont('BuilderSans', 'Gotham')
+	self.FontMedium = options.FontMedium or pickFont('BuilderSansMedium', 'GothamMedium')
+	self.FontBold = options.FontBold or pickFont('BuilderSansBold', 'GothamBold')
+	self.FontHeavy = options.FontHeavy or pickFont('BuilderSansExtraBold', 'GothamBlack')
 
 	-- Root
 	self.ScreenGui = Instance.new("ScreenGui")
@@ -301,6 +324,7 @@ function Library.CreateWindow(options)
 	self.Main.Size = self.OriginalSize
 	self.Main.Position = position
 	self.Main.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.Main.BackgroundTransparency = (self.LiquidGlass and 0.2) or (self.Vibrancy and self.VibrancyAmount or 0)
 	self.Main.Parent = self.Container
 	
 	local mainCorner = Instance.new("UICorner")
@@ -308,8 +332,35 @@ function Library.CreateWindow(options)
 	mainCorner.Parent = self.Main
 
 	local mainStroke = Instance.new("UIStroke")
-	mainStroke.Transparency = 0.5
+	mainStroke.Transparency = self.Vibrancy and 0.35 or 0.5
 	mainStroke.Parent = self.Main
+
+	-- [Liquid Glass dressing] milky haze sheen + glowing edge over the window background
+	local glassSheen = Instance.new("Frame")
+	glassSheen.Name = "GlassSheen"
+	glassSheen.Size = UDim2.fromScale(1, 1)
+	glassSheen.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	glassSheen.BackgroundTransparency = 0.75
+	glassSheen.BorderSizePixel = 0
+	glassSheen.ZIndex = 1
+	glassSheen.Active = false
+	glassSheen.Parent = self.Main
+	glassSheen.Visible = self.LiquidGlass
+	local sheenCorner = Instance.new("UICorner", glassSheen)
+	sheenCorner.CornerRadius = UDim.new(0, 18)
+	local sheenGrad = Instance.new("UIGradient", glassSheen)
+	sheenGrad.Rotation = 90
+	sheenGrad.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.5),
+		NumberSequenceKeypoint.new(0.35, 0.9),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	local glassEdge = Instance.new("UIStroke", self.Main)
+	glassEdge.Name = "GlassEdge"
+	glassEdge.Thickness = 1
+	glassEdge.Color = Color3.fromRGB(255, 255, 255)
+	glassEdge.Transparency = 0.65
+	glassEdge.Enabled = self.LiquidGlass
 
 	-- Shadow (Floating Effect)
 	local shadow = Instance.new("ImageLabel")
@@ -341,7 +392,7 @@ function Library.CreateWindow(options)
 	sbHeader.Name = "SidebarHeader"
 	sbHeader.Size = UDim2.new(0, 180, 0, sbHeaderHeight) -- Increased height for search bar
 	sbHeader.Position = UDim2.new(0, 0, 0, 0)
-	sbHeader.BackgroundTransparency = 0.2
+	sbHeader.BackgroundTransparency = (self.LiquidGlass and 0.2) or (self.Vibrancy and 0.15 or 0.2)
 	sbHeader.BorderSizePixel = 0
 	sbHeader.ZIndex = 5
 	sbHeader.ClipsDescendants = true
@@ -378,7 +429,7 @@ function Library.CreateWindow(options)
     searchInput.PlaceholderText = "Search"
     searchInput.Text = ""
     searchInput.TextXAlignment = Enum.TextXAlignment.Left
-    searchInput.Font = Enum.Font.Gotham
+    searchInput.Font = self.FontRegular
     searchInput.TextSize = 13
     
     -- Search Logic moved after Sidebar creation
@@ -408,7 +459,7 @@ function Library.CreateWindow(options)
         pTitle.Size = UDim2.new(1, -60, 0, 16)
         pTitle.Position = UDim2.new(0, 55, 0.5, -8)
         pTitle.BackgroundTransparency = 1
-        pTitle.Font = Enum.Font.GothamBold
+        pTitle.Font = self.FontBold
         pTitle.TextSize = 13
         pTitle.TextXAlignment = Enum.TextXAlignment.Left
         pTitle.TextTruncate = Enum.TextTruncate.AtEnd
@@ -418,7 +469,7 @@ function Library.CreateWindow(options)
         pSub.Size = UDim2.new(1, -60, 0, 12)
         pSub.Position = UDim2.new(0, 55, 0.5, 8)
         pSub.BackgroundTransparency = 1
-        pSub.Font = Enum.Font.Gotham
+        pSub.Font = self.FontRegular
         pSub.TextSize = 11
         pSub.TextXAlignment = Enum.TextXAlignment.Left
         pSub.TextTruncate = Enum.TextTruncate.AtEnd
@@ -452,7 +503,7 @@ function Library.CreateWindow(options)
 	self.Sidebar.Name = "Sidebar"
 	self.Sidebar.Size = UDim2.new(0, 180, 1, -sbHeaderHeight) -- Adjusted size
 	self.Sidebar.Position = UDim2.new(0, 0, 0, sbHeaderHeight) -- Adjusted pos
-	self.Sidebar.BackgroundTransparency = 0.2
+	self.Sidebar.BackgroundTransparency = (self.LiquidGlass and 0.2) or (self.Vibrancy and 0.15 or 0.2)
 	self.Sidebar.BorderSizePixel = 0
 	self.Sidebar.ScrollBarThickness = 6 -- [CONFIG] Sidebar Scrollbar Thickness
 	self.Sidebar.ScrollBarImageTransparency = 1
@@ -500,6 +551,9 @@ function Library.CreateWindow(options)
 	sidebarLayout.Padding = UDim.new(0, 5)
 	sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	Instance.new("UIPadding", self.Sidebar).PaddingTop = UDim.new(0, 10)
+
+	-- (sidebar tab highlight is drawn by each button's own background and crossfaded in selectThis;
+	-- no separate pill object, so it can never misalign)
 
 	-- Vertical Separator
 	local verticalSeparator = Instance.new("Frame")
@@ -636,7 +690,7 @@ function Library.CreateWindow(options)
 		local title = Instance.new("TextLabel", content)
 		title.Text = titleText
 		title.Size = UDim2.new(1, 0, 0, 40)
-		title.Font = Enum.Font.GothamBold
+		title.Font = self.FontBold
 		title.TextSize = 18
 		title.BackgroundTransparency = 1
 		
@@ -644,7 +698,7 @@ function Library.CreateWindow(options)
 		msg.Text = msgText
 		msg.Size = UDim2.new(1, -20, 0, 40)
 		msg.Position = UDim2.fromOffset(10, 40)
-		msg.Font = Enum.Font.Gotham
+		msg.Font = self.FontRegular
 		msg.TextSize = 14
 		msg.BackgroundTransparency = 1
 		msg.TextWrapped = true
@@ -658,7 +712,7 @@ function Library.CreateWindow(options)
 			btn.Size = UDim2.new(0.4, 0, 0, 30)
 			btn.BackgroundColor3 = color
 			btn.Text = text
-			btn.Font = Enum.Font.GothamMedium
+			btn.Font = self.FontMedium
 			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 			btn.TextSize = 14
 			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
@@ -722,7 +776,7 @@ function Library.CreateWindow(options)
 		titleLabel.Text = titleText
 		titleLabel.Size = UDim2.new(1, 0, 0, 20)
 		titleLabel.Size = UDim2.new(1, -20, 0, 20)
-		titleLabel.Font = Enum.Font.GothamBold
+		titleLabel.Font = self.FontBold
 		titleLabel.TextSize = 14
 		titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 		titleLabel.BackgroundTransparency = 1
@@ -733,7 +787,7 @@ function Library.CreateWindow(options)
 		descriptionLabel.Size = UDim2.new(1, -20, 0, 0)
 		descriptionLabel.AutomaticSize = Enum.AutomaticSize.Y
 		descriptionLabel.TextWrapped = true
-		descriptionLabel.Font = Enum.Font.Gotham
+		descriptionLabel.Font = self.FontRegular
 		descriptionLabel.TextSize = 13
 		descriptionLabel.TextXAlignment = Enum.TextXAlignment.Left
 		descriptionLabel.BackgroundTransparency = 1
@@ -785,6 +839,7 @@ function Library.CreateWindow(options)
 	self.Dock.Position = UDim2.new(0.5, 0, 0, 2)
 	self.Dock.AnchorPoint = Vector2.new(0.5, 0)
 	self.Dock.BackgroundColor3 = self.CurrentTheme.Main
+	self.Dock.BackgroundTransparency = (self.LiquidGlass and 0.2) or (self.Vibrancy and 0.1 or 0)
 	self.Dock.Visible = false
 	self.Dock.Parent = self.ScreenGui -- Parent to ScreenGui to avoid container scaling issues
 	self.Dock.ZIndex = 300
@@ -823,15 +878,19 @@ function Library.CreateWindow(options)
 	dockLabel.Size = UDim2.new(0, 0, 1, 0)
 	dockLabel.BackgroundTransparency = 1
 	dockLabel.Text = title
-	dockLabel.Font = Enum.Font.GothamBold
+	dockLabel.Font = self.FontBold
 	dockLabel.TextSize = 14
 	dockLabel.TextXAlignment = Enum.TextXAlignment.Left
 	dockLabel.LayoutOrder = 3
 	self:AddThemeObject(dockLabel, {TextColor3 = "Text"})
 
 	self.Dock.MouseButton1Click:Connect(function()
-		self.Dock.Visible = false
-		self.Main.Visible = true
+		if self.RestoreFromDock then
+			self:RestoreFromDock()
+		else
+			self.Dock.Visible = false
+			self.Main.Visible = true
+		end
 	end)
 
 	-- Dragging Logic
@@ -966,6 +1025,7 @@ function Library.CreateWindow(options)
 
 	-- Sync Visibility (External Elements)
 	local function syncVisibility()
+		if self._Animating then return end
 		local visible = self.Main.Visible
 		shadow.Visible = visible
 		dragBar.Visible = visible and not self.IsMaximized
@@ -996,10 +1056,14 @@ function Library.CreateWindow(options)
 		syncVisibility()
 	end)
 
-	-- Green: Minimize to Dock
+	-- Green: Minimize to Dock (iOS Genie effect)
 	makeDot(Color3.fromRGB(40, 201, 64), function() 
-		self.Main.Visible = false
-		self.Dock.Visible = true
+		if self.MinimizeToDock then
+			self:MinimizeToDock()
+		else
+			self.Main.Visible = false
+			self.Dock.Visible = true
+		end
 	end)
 
 	-- Sync Shadow Position & Size
@@ -1012,6 +1076,136 @@ function Library.CreateWindow(options)
 	self.Main:GetPropertyChangedSignal("Position"):Connect(syncShadow)
 	self.Main:GetPropertyChangedSignal("Size"):Connect(syncShadow)
 	syncShadow()
+
+	-- [Genie / iOS minimize] shrink + fly toward Dock, restore reverses it
+	local function getDockTargetPos()
+		local cam = workspace.CurrentCamera
+		local vp = cam and cam.ViewportSize or Vector2.new(1920, 1080)
+		local ok, dPos, dSize = pcall(function()
+			return self.Dock.AbsolutePosition, self.Dock.AbsoluteSize
+		end)
+		if ok and dSize and dSize.X > 5 and dSize.Y > 5 then
+			local cx = dPos.X + dSize.X * 0.5
+			local cy = dPos.Y + dSize.Y * 0.5
+			local s = self.Scale
+			if s == nil or s == 0 then s = 1 end
+			return UDim2.new(0.5, (cx - vp.X * 0.5) / s, 0.5, (cy - vp.Y * 0.5) / s)
+		end
+		return UDim2.new(0.5, 0, 0, -200)
+	end
+
+	self._Animating = false
+	self.Main.GroupTransparency = 0
+
+	function self:MinimizeToDock()
+		if self._Animating or self.IsMinimized or not self.Main.Visible then return end
+		self._Animating = true
+		self.IsMinimized = true
+		dragging = false
+		resizing = false
+		self._RestoreSize = self.Main.Size
+		self._RestorePos = self.Main.Position
+		self.Main.ClipsDescendants = true
+		dragBar.Visible = false
+		resizeHandle.Visible = false
+		local targetPos = getDockTargetPos()
+		local tweenInfo = TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut)
+		local posSizeTween = TweenService:Create(self.Main, tweenInfo, {
+			Position = targetPos,
+			Size = UDim2.fromOffset(60, 36),
+		})
+		local fadeTween = TweenService:Create(self.Main, tweenInfo, {
+			GroupTransparency = 1,
+		})
+		TweenService:Create(shadow, tweenInfo, {ImageTransparency = 1}):Play()
+		posSizeTween:Play()
+		fadeTween:Play()
+		posSizeTween.Completed:Wait()
+		if self.IsMinimized then
+			self.Main.Visible = false
+			shadow.Visible = false
+			self.Main.ClipsDescendants = false
+			self.Dock.Visible = true
+		end
+		self._Animating = false
+	end
+
+	function self:RestoreFromDock()
+		if self._Animating then return end
+		if not self.IsMinimized then
+			if not self.Main.Visible then
+				self.Dock.Visible = false
+				self.Main.Visible = true
+			end
+			return
+		end
+		self._Animating = true
+		self.Dock.Visible = false
+		self.Main.Visible = true
+		shadow.Visible = true
+		self.Main.ClipsDescendants = true
+		dragBar.Visible = false
+		resizeHandle.Visible = false
+		local restoreSize = self._RestoreSize or self.OriginalSize
+		local restorePos = self._RestorePos or UDim2.fromScale(0.5, 0.5)
+		self.Main.Position = getDockTargetPos()
+		self.Main.Size = UDim2.fromOffset(60, 36)
+		self.Main.GroupTransparency = 1
+		shadow.ImageTransparency = 1
+		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut)
+		local posSizeTween = TweenService:Create(self.Main, tweenInfo, {
+			Position = restorePos,
+			Size = restoreSize,
+		})
+		local fadeTween = TweenService:Create(self.Main, tweenInfo, {
+			GroupTransparency = 0,
+		})
+		TweenService:Create(shadow, tweenInfo, {ImageTransparency = 0.4}):Play()
+		posSizeTween:Play()
+		fadeTween:Play()
+		posSizeTween.Completed:Wait()
+		self.Main.GroupTransparency = 0
+		self.Main.Position = restorePos
+		self.Main.Size = restoreSize
+		self.IsMinimized = false
+		self.Main.ClipsDescendants = false
+		self._Animating = false
+		syncVisibility()
+		-- fade edge chrome back in quietly so it never pops
+		visualDragBar.BackgroundTransparency = 1
+		arcStroke.Transparency = 1
+		TweenService:Create(visualDragBar, TweenInfo.new(0.35), {BackgroundTransparency = 0.3}):Play()
+		TweenService:Create(arcStroke, TweenInfo.new(0.35), {Transparency = 0.3}):Play()
+		self:RefreshLayout()
+	end
+
+	-- [Fix] forces stuck groups/canvases to appear (call after showing UI)
+	function self:RefreshLayout()
+		local area = self.ContentArea
+		if not area then return end
+		for _, container in ipairs(area:GetChildren()) do
+			if container:IsA("GuiObject") then
+				for _, desc in ipairs(container:GetDescendants()) do
+					if desc:IsA("ScrollingFrame") then
+						local cp = desc.CanvasPosition
+						desc.CanvasPosition = cp + Vector2.new(0, 1)
+						task.defer(function()
+							pcall(function()
+								if desc.Parent then desc.CanvasPosition = cp end
+							end)
+						end)
+					elseif desc.Name == "Group" and desc:IsA("Frame") then
+						for _, l in ipairs(desc:GetChildren()) do
+							if l:IsA("UIListLayout") then
+								local h = l.AbsoluteContentSize.Y
+								if h >= 1 then desc.Size = UDim2.new(1, 0, 0, h) end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
 
 	-- Apply Initial Theme
 	self:AddThemeObject(self.Main, {BackgroundColor3 = "Main"})
@@ -1027,12 +1221,10 @@ function Library.CreateWindow(options)
 	-- Global Keybind Listener
 	table.insert(self.Connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		if not gameProcessed and input.KeyCode == self.ToggleKey then
-			if self.Main.Visible then
-				self.Main.Visible = false
-				self.Dock.Visible = true
+			if self.Main.Visible and not self.IsMinimized then
+				if self.MinimizeToDock then self:MinimizeToDock() else self.Main.Visible = false; self.Dock.Visible = true end
 			else
-				self.Main.Visible = true
-				self.Dock.Visible = false
+				if self.RestoreFromDock then self:RestoreFromDock() else self.Main.Visible = true; self.Dock.Visible = false end
 			end
 		end
 	end))
@@ -1070,7 +1262,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		tabBtn.Size = UDim2.new(0.92, 0, 0, 32)
 		tabBtn.BackgroundTransparency = 1
 		tabBtn.Text = name
-		tabBtn.Font = Enum.Font.GothamMedium
+		tabBtn.Font = window.FontMedium
 		tabBtn.TextSize = 15
 		tabBtn.TextXAlignment = Enum.TextXAlignment.Left
 		Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 9) -- [CONFIG] Tab Button Roundness
@@ -1084,11 +1276,39 @@ function Library:CreateTab(name, subtitle, iconName)
 		end
 	end
 
+	-- [Micro-interactions] hover glow + press scale (sidebar tabs only, look unchanged at rest)
+	if not isProfile then
+		local pressScale = Instance.new("UIScale")
+		pressScale.Scale = 1
+		pressScale.Parent = tabBtn
+		tabBtn.MouseEnter:Connect(function()
+			if window.ActiveTab ~= tabBtn then
+				TweenService:Create(tabBtn, TweenInfo.new(0.15), {BackgroundTransparency = 0.85}):Play()
+			end
+		end)
+		tabBtn.MouseLeave:Connect(function()
+			if window.ActiveTab ~= tabBtn then
+				TweenService:Create(tabBtn, TweenInfo.new(0.15), {BackgroundTransparency = 1}):Play()
+			end
+		end)
+		tabBtn.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				TweenService:Create(pressScale, TweenInfo.new(0.08), {Scale = 0.97}):Play()
+			end
+		end)
+		tabBtn.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				TweenService:Create(pressScale, TweenInfo.new(0.1), {Scale = 1}):Play()
+			end
+		end)
+	end
+
 	-- Container
-	local container = Instance.new("Frame", self.ContentArea)
+	local container = Instance.new("CanvasGroup", self.ContentArea)
 	container.Name = name .. "Container"
 	container.Size = UDim2.fromScale(1, 1)
 	container.BackgroundTransparency = 1
+	container.GroupTransparency = 0
 	container.Visible = false
 
 	-- Page (ScrollingFrame)
@@ -1164,7 +1384,7 @@ function Library:CreateTab(name, subtitle, iconName)
 	local title = Instance.new("TextLabel", textFrame)
 	title.Text = name
 	title.Size = UDim2.new(1, 0, 0, 25)
-	title.Font = Enum.Font.GothamBold
+	title.Font = window.FontBold
 	title.TextSize = 24
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.BackgroundTransparency = 1
@@ -1173,7 +1393,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		local sub = Instance.new("TextLabel", textFrame)
 		sub.Text = subtitle
 		sub.Size = UDim2.new(1, 0, 0, 15)
-		sub.Font = Enum.Font.Gotham
+		sub.Font = window.FontRegular
 		sub.TextSize = 14
 		sub.TextXAlignment = Enum.TextXAlignment.Left
 		sub.BackgroundTransparency = 1
@@ -1237,9 +1457,12 @@ function Library:CreateTab(name, subtitle, iconName)
 	end)
 
 	local function selectThis()
+		-- tab protection: clicking the active tab replays nothing
+		if self.ActiveTab == tabBtn and self.ActivePage == container and container.Visible then return end
 		if self.ActivePage then self.ActivePage.Visible = false end
-		if self.ActiveTab then 
-			self.ActiveTab.BackgroundTransparency = 1 
+		if self.ActiveTab then
+			local oldTab = self.ActiveTab
+			TweenService:Create(oldTab, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
 			if self.ActiveTab:FindFirstChild("UIPadding") then
 				self.ActiveTab.TextColor3 = window.CurrentTheme.TextSub
 			end
@@ -1252,16 +1475,25 @@ function Library:CreateTab(name, subtitle, iconName)
 		container.Visible = true
 		self.ActivePage = container
 		self.ActiveTab = tabBtn
+		task.defer(function() window:RefreshLayout() end)
+
+		-- content crossfade + subtle rise
+		container.GroupTransparency = 1
+		container.Position = UDim2.new(0, 0, 0, 10)
+		TweenService:Create(container, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}):Play()
 		
 		if not isProfile then
-			tabBtn.BackgroundTransparency = 0
-			tabBtn.TextColor3 = window.CurrentTheme.TextBtn
+			-- highlight crossfade right on the button: old bleeds out, new bleeds in
+			TweenService:Create(tabBtn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0, TextColor3 = window.CurrentTheme.TextBtn}):Play()
 		else
 			tabBtn.BackgroundTransparency = 0
 			local newTitle = tabBtn:FindFirstChild("Title")
 			local newSub = tabBtn:FindFirstChild("Subtitle")
 			if newTitle then newTitle.TextColor3 = window.CurrentTheme.TextBtn end
 			if newSub then newSub.TextColor3 = window.CurrentTheme.TextBtn end
+		end
+		if type(window.OnTabChanged) == "function" then
+			window.OnTabChanged(tabBtn.LayoutOrder, name)
 		end
 	end
 
@@ -1282,7 +1514,8 @@ function Library:CreateTab(name, subtitle, iconName)
 		circle.Size = UDim2.new(0, 0, 0, 0)
 		circle.AnchorPoint = Vector2.new(0.5, 0.5)
 		
-		local size = math.max(btn.AbsoluteSize.X, btn.AbsoluteSize.Y) * 1.5
+		-- cap to the row height so the circle stays inscribed and never bleeds past rounded corners
+		local size = math.max(math.min(btn.AbsoluteSize.X, btn.AbsoluteSize.Y), 24)
 		local tween = TweenService:Create(circle, TweenInfo.new(0.5), {Size = UDim2.new(0, size, 0, size), ImageTransparency = 1})
 		tween:Play()
 		tween.Completed:Connect(function() circle:Destroy() end)
@@ -1317,9 +1550,10 @@ function Library:CreateTab(name, subtitle, iconName)
 		local group = Instance.new("Frame", page)
 		group.Name = "Group"
 		group.LayoutOrder = elementCount
-		group.Size = UDim2.new(1, 0, 0, 0)
-		group.AutomaticSize = Enum.AutomaticSize.Y
+		group.Size = UDim2.new(1, 0, 0, 1)
+		group.AutomaticSize = Enum.AutomaticSize.None
 		group.BackgroundColor3 = window.CurrentTheme.ElementBG
+		group.BackgroundTransparency = window.LiquidGlass and 0.25 or 0
 		group.BorderSizePixel = 0
 		group.ClipsDescendants = true
 		
@@ -1334,6 +1568,16 @@ function Library:CreateTab(name, subtitle, iconName)
 		local layout = Instance.new("UIListLayout", group)
 		layout.SortOrder = Enum.SortOrder.LayoutOrder
 		layout.Padding = UDim.new(0, 0)
+
+		-- [Fix] AutomaticSize does not recalc inside a CanvasGroup, so groups stayed
+		-- 0px tall until the user scrolled. Size the group from its layout instead.
+		local function fitGroup()
+			local h = layout.AbsoluteContentSize.Y
+			if h < 1 then h = 1 end
+			group.Size = UDim2.new(1, 0, 0, h)
+		end
+		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fitGroup)
+		task.defer(fitGroup)
 		
 		window:AddThemeObject(group, {BackgroundColor3 = "ElementBG"})
 		currentGroup = group
@@ -1358,13 +1602,15 @@ function Library:CreateTab(name, subtitle, iconName)
 		local btn = Instance.new("TextButton", frame)
 		btn.Size = UDim2.new(1, 0, 1, 0)
 		btn.TextXAlignment = Enum.TextXAlignment.Left
-		btn.Font = Enum.Font.GothamMedium
+		btn.Font = window.FontMedium
 		btn.TextSize = 15
 		btn.ClipsDescendants = true
+		btn.TextTruncate = Enum.TextTruncate.AtEnd
 		btn.BackgroundTransparency = 1
 		
 		local padding = Instance.new("UIPadding", btn)
 		padding.PaddingLeft = UDim.new(0, 15)
+		padding.PaddingRight = UDim.new(0, 38) -- keep clear of the arrow
 		if icon then
 			window:CreateIcon(btn, icon)
 			padding.PaddingLeft = UDim.new(0, 40)
@@ -1375,9 +1621,9 @@ function Library:CreateTab(name, subtitle, iconName)
 			btn.Text = ""
 			local title = Instance.new("TextLabel", btn)
 			title.Text = text
-			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Size = UDim2.new(1, -38, 0, 20)
 			title.Position = UDim2.new(0, 0, 0, 2)
-			title.Font = Enum.Font.GothamMedium
+			title.Font = window.FontMedium
 			title.TextSize = 15
 			title.BackgroundTransparency = 1
 			title.TextXAlignment = Enum.TextXAlignment.Left
@@ -1385,9 +1631,9 @@ function Library:CreateTab(name, subtitle, iconName)
 
 			local sub = Instance.new("TextLabel", btn)
 			sub.Text = subtitle
-			sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Size = UDim2.new(1, -38, 0, 12)
 			sub.Position = UDim2.new(0, 0, 0, 22)
-			sub.Font = Enum.Font.Gotham
+			sub.Font = window.FontRegular
 			sub.TextSize = 12
 			sub.BackgroundTransparency = 1
 			sub.TextXAlignment = Enum.TextXAlignment.Left
@@ -1404,7 +1650,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		arrow.Size = UDim2.new(0, 30, 0, 30)
 		arrow.Position = UDim2.new(1, -10, 0.5, 0)
 		arrow.BackgroundTransparency = 1
-		arrow.Font = Enum.Font.GothamBold
+		arrow.Font = window.FontBold
 		arrow.TextSize = 16
 		window:AddThemeObject(arrow, {TextColor3 = "TextSub"})
 
@@ -1457,7 +1703,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		label.Size = UDim2.new(1, -50, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
-		label.Font = Enum.Font.GothamMedium
+		label.Font = window.FontMedium
 		label.TextSize = 15
 		
 		local padding = Instance.new("UIPadding", label)
@@ -1473,7 +1719,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			title.Text = text
 			title.Size = UDim2.new(1, 0, 0, 20)
 			title.Position = UDim2.new(0, 0, 0, 2)
-			title.Font = Enum.Font.GothamMedium
+			title.Font = window.FontMedium
 			title.TextSize = 15
 			title.BackgroundTransparency = 1
 			title.TextXAlignment = Enum.TextXAlignment.Left
@@ -1483,7 +1729,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			sub.Text = subtitle
 			sub.Size = UDim2.new(1, 0, 0, 12)
 			sub.Position = UDim2.new(0, 0, 0, 22)
-			sub.Font = Enum.Font.Gotham
+			sub.Font = window.FontRegular
 			sub.TextSize = 12
 			sub.BackgroundTransparency = 1
 			sub.TextXAlignment = Enum.TextXAlignment.Left
@@ -1592,7 +1838,7 @@ function Library:CreateTab(name, subtitle, iconName)
         label.AnchorPoint = Vector2.new(0, 0.5)
         label.BackgroundTransparency = 1
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Font = Enum.Font.GothamMedium
+        label.Font = window.FontMedium
         label.TextSize = 15
 
         local padding = Instance.new("UIPadding", label)
@@ -1608,7 +1854,7 @@ function Library:CreateTab(name, subtitle, iconName)
             title.Text = text
             title.Size = UDim2.new(1, 0, 0, 20)
 			title.Position = UDim2.new(0, 0, 0, 2)
-            title.Font = Enum.Font.GothamMedium
+            title.Font = window.FontMedium
             title.TextSize = 15
             title.BackgroundTransparency = 1
             title.TextXAlignment = Enum.TextXAlignment.Left
@@ -1618,7 +1864,7 @@ function Library:CreateTab(name, subtitle, iconName)
             sub.Text = subtitle
             sub.Size = UDim2.new(1, 0, 0, 12)
 			sub.Position = UDim2.new(0, 0, 0, 22)
-            sub.Font = Enum.Font.Gotham
+            sub.Font = window.FontRegular
             sub.TextSize = 12
             sub.BackgroundTransparency = 1
             sub.TextXAlignment = Enum.TextXAlignment.Left
@@ -1646,7 +1892,7 @@ function Library:CreateTab(name, subtitle, iconName)
         minLabel.Position = UDim2.new(0, 15, 0.3, 12)
         minLabel.BackgroundTransparency = 1
         minLabel.TextXAlignment = Enum.TextXAlignment.Left
-        minLabel.Font = Enum.Font.Gotham
+        minLabel.Font = window.FontRegular
         minLabel.TextSize = 11
         window:AddThemeObject(minLabel, { TextColor3 = "TextSub" })
 
@@ -1657,7 +1903,7 @@ function Library:CreateTab(name, subtitle, iconName)
         maxLabel.AnchorPoint = Vector2.new(1, 0)
         maxLabel.BackgroundTransparency = 1
         maxLabel.TextXAlignment = Enum.TextXAlignment.Right
-        maxLabel.Font = Enum.Font.Gotham
+        maxLabel.Font = window.FontRegular
         maxLabel.TextSize = 11
         window:AddThemeObject(maxLabel, { TextColor3 = "TextSub" })
 
@@ -1689,17 +1935,38 @@ function Library:CreateTab(name, subtitle, iconName)
         Instance.new("UICorner", knobVisual).CornerRadius = UDim.new(1, 0)
         local knobStroke = Instance.new("UIStroke", knobVisual)
 
-        local valuePopup = Instance.new("CanvasGroup", knob)
-        valuePopup.Size = UDim2.fromOffset(32, 28)
-        valuePopup.Position = UDim2.new(0.5, 0, 0, -5)
+        -- [Fix] popup lives on the window overlay so group ClipsDescendants can never cut it off
+        local valuePopup = Instance.new("CanvasGroup", window.Container)
+        valuePopup.Name = "SliderPopup"
+        valuePopup.Size = UDim2.fromOffset(30, 25)
         valuePopup.AnchorPoint = Vector2.new(0.5, 1)
         valuePopup.GroupTransparency = 1
         valuePopup.Visible = false
-        valuePopup.ZIndex = knob.ZIndex + 10
+        valuePopup.ZIndex = 400
         valuePopup.BackgroundTransparency = 1
 
+        -- popup follows the knob by percent: one deterministic writer, no signal loops, no jitter.
+        -- bottom edge sits 5px above the knob so the tail touches it (no more floating).
+        local currentPercent = 0
+        if max ~= min then
+            currentPercent = math.clamp((default - min) / (max - min), 0, 1)
+        end
+        local function syncPopupToPercent(percent)
+            local sc = window.Scale
+            if sc == nil or sc == 0 then sc = 1 end
+            local bp = bar.AbsolutePosition
+            local bs = bar.AbsoluteSize
+            local cx = bp.X + bs.X * math.clamp(percent, 0, 1)
+            local cy = bp.Y + bs.Y * 9
+            valuePopup.Position = UDim2.fromOffset(cx / sc, cy / sc)
+        end
+        syncPopupToPercent(currentPercent)
+        window.Main:GetPropertyChangedSignal("Visible"):Connect(function()
+            if not window.Main.Visible then valuePopup.Visible = false end
+        end)
+
         local popupBody = Instance.new("Frame", valuePopup)
-        popupBody.Size = UDim2.new(1, 0, 1, -6)
+        popupBody.Size = UDim2.new(1, 0, 1, -5)
         Instance.new("UICorner", popupBody).CornerRadius = UDim.new(0, 4)
 
         -- FIXED TAIL (NO ASSET)
@@ -1715,8 +1982,8 @@ function Library:CreateTab(name, subtitle, iconName)
         local valueText = Instance.new("TextLabel", popupBody)
         valueText.Size = UDim2.fromScale(1, 1)
         valueText.BackgroundTransparency = 1
-        valueText.Font = Enum.Font.GothamMedium
-        valueText.TextSize = 12
+        valueText.Font = window.FontMedium
+        valueText.TextSize = 13
         valueText.Text = tostring(math.floor(default + 0.5))
 
         window:AddThemeObject(popupBody, { BackgroundColor3 = "Accent" })
@@ -1733,6 +2000,8 @@ function Library:CreateTab(name, subtitle, iconName)
 
         local function applyVisual(percent, animate)
             percent = math.clamp(percent, 0, 1)
+            currentPercent = percent
+            if valuePopup.Visible then syncPopupToPercent(percent) end
             if animate then
                 TweenService:Create(fill, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromScale(percent, 1)}):Play()
                 TweenService:Create(knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.fromScale(percent, 0.5)}):Play()
@@ -1769,9 +2038,11 @@ function Library:CreateTab(name, subtitle, iconName)
 
         local function startDrag()
             dragging = true
+            -- snap straight to this slider's own knob (never tween from a stale spot)
+            syncPopupToPercent(currentPercent)
             valuePopup.Visible = true
-            TweenService:Create(valuePopup, TweenInfo.new(0.2), {
-                Position = UDim2.new(0.5, 0, 0, -12),
+            valuePopup.GroupTransparency = 1
+            TweenService:Create(valuePopup, TweenInfo.new(0.15), {
                 GroupTransparency = 0
             }):Play()
             if page and page:IsA("ScrollingFrame") then
@@ -1782,7 +2053,6 @@ function Library:CreateTab(name, subtitle, iconName)
         local function endDrag()
             dragging = false
             TweenService:Create(valuePopup, TweenInfo.new(0.2), {
-                Position = UDim2.new(0.5, 0, 0, -5),
                 GroupTransparency = 1
             }):Play()
             task.delay(0.2, function()
@@ -1793,26 +2063,34 @@ function Library:CreateTab(name, subtitle, iconName)
             end
         end
 
+        -- track the exact input that grabbed the slider: joystick (walk) and camera touches are ignored
+        local dragInput = nil
+
         knob.InputBegan:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseButton1 then startDrag() end
-            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then startDrag() end
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+                dragInput = i
+                startDrag()
+            end
         end)
 
         bar.InputBegan:Connect(function(i)
             if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+                dragInput = i
                 startDrag()
                 update(i)
             end
         end)
 
         table.insert(window.Connections, UserInputService.InputChanged:Connect(function(i)
-            if dragging then update(i) end
-            if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then update(i) end
+            -- mouse movement arrives as its own object; touches must match the grabbing finger
+            if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i == dragInput) then update(i) end
         end))
 
         table.insert(window.Connections, UserInputService.InputEnded:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseButton1 then endDrag() end
-            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then endDrag() end
+            if i == dragInput then
+                dragInput = nil
+                endDrag()
+            end
         end))
 
         -- Programmatic API (WindUI-style): knob follows script value
@@ -1883,7 +2161,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		label.Size = UDim2.new(0.4, 0, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
-		label.Font = Enum.Font.GothamMedium
+		label.Font = window.FontMedium
 		label.TextSize = 15
 
 		local padding = Instance.new("UIPadding", label)
@@ -1899,7 +2177,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			title.Text = text
 			title.Size = UDim2.new(1, 0, 0, 20)
 			title.Position = UDim2.new(0, 0, 0, -4)
-			title.Font = Enum.Font.GothamMedium
+			title.Font = window.FontMedium
 			title.TextSize = 15
 			title.BackgroundTransparency = 1
 			title.TextXAlignment = Enum.TextXAlignment.Left
@@ -1909,7 +2187,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			sub.Text = subtitle
 			sub.Size = UDim2.new(1, 0, 0, 12)
 			sub.Position = UDim2.new(0, 0, 0, 22)
-			sub.Font = Enum.Font.Gotham
+			sub.Font = window.FontRegular
 			sub.TextSize = 12
 			sub.BackgroundTransparency = 1
 			sub.TextXAlignment = Enum.TextXAlignment.Left
@@ -1936,7 +2214,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		valueBtn.BackgroundTransparency = 1
 		valueBtn.Text = getValText()
 		valueBtn.TextXAlignment = Enum.TextXAlignment.Right -- Right Align
-		valueBtn.Font = Enum.Font.Gotham
+		valueBtn.Font = window.FontRegular
 		valueBtn.TextSize = 14
         valueBtn.ClipsDescendants = true
 		Instance.new("UICorner", valueBtn).CornerRadius = UDim.new(0, 8)
@@ -2083,7 +2361,7 @@ function Library:CreateTab(name, subtitle, iconName)
             check.Size = UDim2.new(0, 30, 1, 0)
             check.BackgroundTransparency = 1
             check.Text = "✔"
-            check.Font = Enum.Font.GothamBold
+            check.Font = window.FontBold
             check.TextSize = 12
             check.TextColor3 = window.CurrentTheme.Text
             check.Visible = isSelected
@@ -2093,7 +2371,7 @@ function Library:CreateTab(name, subtitle, iconName)
             label.Position = UDim2.new(0, 35, 0, 0)
             label.BackgroundTransparency = 1
             label.Text = tostring(v)
-            label.Font = isSelected and Enum.Font.GothamBold or Enum.Font.GothamMedium
+            label.Font = isSelected and window.FontBold or window.FontMedium
             label.TextSize = 14
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.TextColor3 = window.CurrentTheme.Text
@@ -2126,7 +2404,7 @@ function Library:CreateTab(name, subtitle, iconName)
                 if multi then
                      isSelected = table.find(default, v) ~= nil
                      check.Visible = isSelected
-                     label.Font = isSelected and Enum.Font.GothamBold or Enum.Font.GothamMedium
+                     label.Font = isSelected and window.FontBold or window.FontMedium
                      btn.BackgroundColor3 = window.CurrentTheme.Accent
                      btn.BackgroundTransparency = 0.15
                 else
@@ -2227,7 +2505,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			headerLabel.Size = UDim2.new(1, -20, 1, 0)
 			headerLabel.Position = UDim2.new(0, 15, 0, 0)
 			headerLabel.BackgroundTransparency = 1
-			headerLabel.Font = Enum.Font.GothamBold
+			headerLabel.Font = window.FontBold
 			headerLabel.TextSize = 14
 			headerLabel.TextXAlignment = Enum.TextXAlignment.Left
 			window:AddThemeObject(headerLabel, {TextColor3 = "TextSub"})
@@ -2242,7 +2520,7 @@ function Library:CreateTab(name, subtitle, iconName)
 				subLabel.Size = UDim2.new(1, -20, 0, 15)
 				subLabel.Position = UDim2.new(0, 15, 0, 25)
 				subLabel.BackgroundTransparency = 1
-				subLabel.Font = Enum.Font.Gotham
+				subLabel.Font = window.FontRegular
 				subLabel.TextSize = 12
 				subLabel.TextXAlignment = Enum.TextXAlignment.Left
 				window:AddThemeObject(subLabel, {TextColor3 = "TextSub"})
@@ -2283,7 +2561,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			label.Position = UDim2.new(0, 40, 0, 0)
 			label.BackgroundTransparency = 1
 			label.TextXAlignment = Enum.TextXAlignment.Left
-			label.Font = Enum.Font.GothamMedium
+			label.Font = window.FontMedium
 			label.TextSize = 14
 			window:AddThemeObject(label, {TextColor3 = "Text"})
 
@@ -2462,6 +2740,276 @@ function Library:CreateTab(name, subtitle, iconName)
 		return consoleObject
 	end
 
+	function Elements:Checkboxes(options)
+		local text = options.Title or "Options"
+		local subtitle = options.Subtitle
+		local items = options.Options or options.Values or {}
+		local mode = options.SelectionMode or options.Mode or "Multi"
+		if mode ~= "Single" then mode = "Multi" end
+		local callback = options.Callback or function() end
+		local icon = options.Icon
+		local flag = options.Flag
+		local extraCallback = nil
+
+		-- state: option -> true/false
+		local state = {}
+
+		local function currentValue()
+			if mode == "Single" then
+				for _, opt in ipairs(items) do
+					if state[opt] == true then return opt end
+				end
+				return nil
+			end
+			local out = {}
+			for _, opt in ipairs(items) do
+				out[opt] = state[opt] == true
+			end
+			return out
+		end
+
+		local function pushFlag()
+			if flag then window:SetFlag(flag, currentValue()) end
+		end
+
+		if flag and window.Flags[flag] ~= nil then
+			local saved = window.Flags[flag]
+			if mode == "Single" then
+				if type(saved) == "string" then state[saved] = true end
+			elseif type(saved) == "table" then
+				for _, v in ipairs(saved) do
+					if type(v) == "string" then state[v] = true end
+				end
+				for k, v in pairs(saved) do
+					if type(k) == "string" then state[k] = (v == true) end
+				end
+			end
+		elseif options.Value ~= nil then
+			if mode == "Single" then
+				if type(options.Value) == "string" then state[options.Value] = true end
+			elseif type(options.Value) == "table" then
+				for _, v in ipairs(options.Value) do
+					if type(v) == "string" then state[v] = true end
+				end
+			elseif type(options.Value) == "string" then
+				state[options.Value] = true
+			end
+		end
+		if flag and window.Flags[flag] == nil then
+			window.Flags[flag] = currentValue()
+		end
+
+		local parent = getGroup()
+		local frame = Instance.new("Frame", parent)
+		frame.Size = UDim2.new(1, 0, 0, 46)
+		frame.BackgroundTransparency = 1
+
+		-- left title
+		local label = Instance.new("TextLabel", frame)
+		label.Size = UDim2.new(0.42, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.Font = window.FontMedium
+		label.TextSize = 15
+
+		local padding = Instance.new("UIPadding", label)
+		padding.PaddingLeft = UDim.new(0, 15)
+		if icon then
+			window:CreateIcon(frame, icon, UDim2.new(0, 12, 0.5, 0))
+			padding.PaddingLeft = UDim.new(0, 40)
+		end
+
+		if subtitle then
+			label.Text = ""
+			local title = Instance.new("TextLabel", label)
+			title.Text = text
+			title.Size = UDim2.new(1, 0, 0, 20)
+			title.Position = UDim2.new(0, 0, 0, -6)
+			title.Font = window.FontMedium
+			title.TextSize = 15
+			title.BackgroundTransparency = 1
+			title.TextXAlignment = Enum.TextXAlignment.Left
+			title.TextTruncate = Enum.TextTruncate.AtEnd
+			window:AddThemeObject(title, {TextColor3 = "Text"})
+
+			local sub = Instance.new("TextLabel", label)
+			sub.Text = subtitle
+			sub.Size = UDim2.new(1, 0, 0, 12)
+			sub.Position = UDim2.new(0, 0, 0, 16)
+			sub.Font = window.FontRegular
+			sub.TextSize = 12
+			sub.BackgroundTransparency = 1
+			sub.TextXAlignment = Enum.TextXAlignment.Left
+			sub.TextTruncate = Enum.TextTruncate.AtEnd
+			window:AddThemeObject(sub, {TextColor3 = "TextSub"})
+		else
+			label.Text = text
+			window:AddThemeObject(label, {TextColor3 = "Text"})
+		end
+
+		-- right inline option stack
+		local list = Instance.new("Frame", frame)
+		list.Name = "OptionList"
+		list.Size = UDim2.new(0.58, -12, 1, -10)
+		list.Position = UDim2.new(0.42, 0, 0, 5)
+		list.BackgroundTransparency = 1
+
+		local listLayout = Instance.new("UIListLayout", list)
+		listLayout.FillDirection = Enum.FillDirection.Horizontal
+		listLayout.Wraps = true
+		listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		listLayout.Padding = UDim.new(0, 6)
+		listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+		-- row grows only when options wrap onto more lines
+		local optFrame = frame
+		local function fitRow()
+			optFrame.Size = UDim2.new(1, 0, 0, math.max(46, listLayout.AbsoluteContentSize.Y + 16))
+		end
+		listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fitRow)
+		task.defer(fitRow)
+
+		local boxes = {}
+
+		local function paint(optName)
+			local parts = boxes[optName]
+			if not parts then return end
+			local on = state[optName] == true
+			local theme = window.CurrentTheme
+			TweenService:Create(parts.box, TweenInfo.new(0.15), {BackgroundColor3 = on and theme.Accent or theme.ToggleInactive}):Play()
+			parts.check.Visible = on
+		end
+
+		for i, opt in ipairs(items) do
+			local optName = tostring(opt)
+			local tw = 60
+			pcall(function()
+				tw = TextService:GetTextSize(optName, 13, window.FontRegular, Vector2.new(1000, 28)).X
+			end)
+			local btn = Instance.new("TextButton", list)
+			btn.LayoutOrder = i
+			btn.Size = UDim2.fromOffset(math.min(math.max(tw + 32, 40), 220), 28)
+			btn.BackgroundTransparency = 1
+			btn.Text = ""
+			btn.AutoButtonColor = false
+
+			local box = Instance.new("Frame", btn)
+			box.Size = UDim2.fromOffset(18, 18)
+			box.Position = UDim2.new(0, 2, 0.5, 0)
+			box.AnchorPoint = Vector2.new(0, 0.5)
+			box.BackgroundColor3 = state[optName] and window.CurrentTheme.Accent or window.CurrentTheme.ToggleInactive
+			box.BorderSizePixel = 0
+			local boxCorner = Instance.new("UICorner", box)
+			boxCorner.CornerRadius = UDim.new(0, 5)
+			local boxStroke = Instance.new("UIStroke", box)
+			window:AddThemeObject(boxStroke, {Color = "Stroke"})
+			window:AddThemeObject(box, {BackgroundColor3 = function(obj, theme)
+				obj.BackgroundColor3 = state[optName] and theme.Accent or theme.ToggleInactive
+			end})
+
+			local checkIcon = window:CreateIcon(box, "check", UDim2.new(0.5, 0, 0.5, 0), UDim2.fromOffset(14, 14))
+			local check
+			if checkIcon then
+				checkIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+				checkIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+				for i = #window.ThemeObjects, 1, -1 do
+					if window.ThemeObjects[i].Object == checkIcon then
+						table.remove(window.ThemeObjects, i)
+					end
+				end
+				check = checkIcon
+			else
+				check = Instance.new("TextLabel", box)
+				check.Size = UDim2.fromScale(1, 1)
+				check.BackgroundTransparency = 1
+				check.Text = "+"
+				check.Font = window.FontBold
+				check.TextSize = 14
+				check.TextColor3 = Color3.fromRGB(255, 255, 255)
+			end
+			check.Visible = state[optName] == true
+
+			local optLabel = Instance.new("TextLabel", btn)
+			optLabel.Size = UDim2.new(1, -28, 1, 0)
+			optLabel.Position = UDim2.new(0, 26, 0, 0)
+			optLabel.BackgroundTransparency = 1
+			optLabel.Text = optName
+			optLabel.Font = window.FontRegular
+			optLabel.TextSize = 13
+			optLabel.TextXAlignment = Enum.TextXAlignment.Left
+			optLabel.TextTruncate = Enum.TextTruncate.AtEnd
+			window:AddThemeObject(optLabel, {TextColor3 = "Text"})
+
+			boxes[optName] = {box = box, check = check}
+
+			btn.MouseButton1Click:Connect(function()
+				if mode == "Single" then
+					local wasOn = state[optName] == true
+					for k in pairs(state) do state[k] = false end
+					state[optName] = not wasOn
+					for other in pairs(boxes) do paint(other) end
+				else
+					state[optName] = not (state[optName] == true)
+					paint(optName)
+				end
+				pushFlag()
+				local val = currentValue()
+				callback(val)
+				if extraCallback then extraCallback(val) end
+			end)
+		end
+
+		for optName in pairs(boxes) do paint(optName) end
+
+		local separator = Instance.new("Frame", frame)
+		separator.Name = "Separator"
+		separator.Size = UDim2.new(1, -20, 0, 1)
+		separator.Position = UDim2.new(0, 10, 1, -1)
+		separator.BorderSizePixel = 0
+		separator.BackgroundTransparency = 0.4
+		window:AddThemeObject(separator, {BackgroundColor3 = "Stroke"})
+
+		updateGroupSeparators(parent)
+
+		local api = {}
+		function api:OnChanged(fn)
+			extraCallback = fn
+		end
+		function api:Get()
+			return currentValue()
+		end
+		function api:Set(v)
+			if mode == "Single" then
+				for k in pairs(state) do state[k] = false end
+				if type(v) == "string" then state[v] = true end
+			else
+				if type(v) == "table" then
+					local isList = #v > 0
+					if isList then
+						for k in pairs(state) do state[k] = false end
+						for _, opt in ipairs(v) do state[tostring(opt)] = true end
+					else
+						for k, val in pairs(v) do state[tostring(k)] = (val == true) end
+					end
+				elseif type(v) == "string" then
+					state[v] = true
+				end
+			end
+			for optName in pairs(boxes) do paint(optName) end
+			pushFlag()
+			local val = currentValue()
+			callback(val)
+			if extraCallback then extraCallback(val) end
+		end
+
+		if flag then
+			window.ConfigUpdates[flag] = function(newVal)
+				api:Set(newVal)
+			end
+		end
+
+		return api
+	end
+
 	function Elements:Section(options)
 		endGroup()
 		elementCount = elementCount + 1
@@ -2474,13 +3022,13 @@ function Library:CreateTab(name, subtitle, iconName)
 
 		local frame = Instance.new("Frame", page)
 		frame.LayoutOrder = elementCount
-		frame.Size = UDim2.new(1, 0, 0, hasBody and 40 or 18)
+		frame.Size = UDim2.new(1, 0, 0, hasBody and 46 or 26)
 		frame.BackgroundTransparency = 1
 
 		local headLabel = Instance.new("TextLabel", frame)
 		headLabel.Text = head
-		headLabel.Size = hasBody and UDim2.new(1, 0, 0, 20) or UDim2.new(1, 0, 1, 0)
-		headLabel.Font = Enum.Font.GothamBold
+		headLabel.Size = hasBody and UDim2.new(1, 0, 0, 24) or UDim2.new(1, 0, 1, 0)
+		headLabel.Font = window.FontBold
 		headLabel.TextSize = headSize
 		headLabel.TextXAlignment = Enum.TextXAlignment.Left
 		headLabel.BackgroundTransparency = 1
@@ -2494,8 +3042,8 @@ function Library:CreateTab(name, subtitle, iconName)
 		local bodyLabel = Instance.new("TextLabel", frame)
 		bodyLabel.Text = body
 		bodyLabel.Size = UDim2.new(1, 0, 0, 15)
-		bodyLabel.Position = UDim2.fromOffset(0, 20)
-		bodyLabel.Font = Enum.Font.Gotham
+		bodyLabel.Position = UDim2.fromOffset(0, 26)
+		bodyLabel.Font = window.FontRegular
 		bodyLabel.TextSize = bodySize
 		bodyLabel.TextXAlignment = Enum.TextXAlignment.Left
 		bodyLabel.BackgroundTransparency = 1
@@ -2529,7 +3077,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		local parent = getGroup()
 		local btn = Instance.new("TextButton", parent)
 		btn.Size = UDim2.new(1, 0, 0, 42)
-		btn.Font = Enum.Font.GothamBold
+		btn.Font = window.FontBold
 		btn.TextSize = 15
 		
 		local padding = Instance.new("UIPadding", btn)
@@ -2560,7 +3108,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			title.Text = text
 			title.Size = UDim2.new(1, 0, 0, 20)
 			title.Position = UDim2.new(0, 0, 0, 2)
-			title.Font = Enum.Font.GothamBold
+			title.Font = window.FontBold
 			title.TextSize = 15
 			title.BackgroundTransparency = 1
 			title.TextXAlignment = (icon or options.TextXAlignment == Enum.TextXAlignment.Left) and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center
@@ -2570,7 +3118,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			sub.Text = subtitle
 			sub.Size = UDim2.new(1, 0, 0, 12)
 			sub.Position = UDim2.new(0, 0, 0, 16)
-			sub.Font = Enum.Font.Gotham
+			sub.Font = window.FontRegular
 			sub.TextSize = 12
 			sub.BackgroundTransparency = 1
 			sub.TextXAlignment = title.TextXAlignment
@@ -2613,7 +3161,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		label.Size = UDim2.new(1, -100, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
-		label.Font = Enum.Font.GothamMedium
+		label.Font = window.FontMedium
 		label.TextSize = 15
 		label.TextColor3 = Color3.fromRGB(40, 40, 40)
 
@@ -2630,7 +3178,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			title.Text = text
 			title.Size = UDim2.new(1, 0, 0, 20)
 			title.Position = UDim2.new(0, 0, 0, 2)
-			title.Font = Enum.Font.GothamMedium
+			title.Font = window.FontMedium
 			title.TextSize = 15
 			title.BackgroundTransparency = 1
 			title.TextXAlignment = Enum.TextXAlignment.Left
@@ -2640,7 +3188,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			sub.Text = subtitle
 			sub.Size = UDim2.new(1, 0, 0, 12)
 			sub.Position = UDim2.new(0, 0, 0, 22)
-			sub.Font = Enum.Font.Gotham
+			sub.Font = window.FontRegular
 			sub.TextSize = 12
 			sub.BackgroundTransparency = 1
 			sub.TextXAlignment = Enum.TextXAlignment.Left
@@ -2655,7 +3203,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		btn.Position = UDim2.new(1, -6, 0.5, 0)
 		btn.AnchorPoint = Vector2.new(1, 0.5)
 		btn.Text = default.Name
-		btn.Font = Enum.Font.GothamBold
+		btn.Font = window.FontBold
 		btn.TextSize = 14
 		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 		local stroke = Instance.new("UIStroke", btn)
@@ -2761,7 +3309,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		label.Size = UDim2.new(0.4, 0, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
-		label.Font = Enum.Font.GothamMedium
+		label.Font = window.FontMedium
 		label.TextSize = 15
 
 		local padding = Instance.new("UIPadding", label)
@@ -2777,7 +3325,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			title.Text = text
 			title.Size = UDim2.new(1, 0, 0, 20)
 			title.Position = UDim2.new(0, 0, 0, 2)
-			title.Font = Enum.Font.GothamMedium
+			title.Font = window.FontMedium
 			title.TextSize = 15
 			title.BackgroundTransparency = 1
 			title.TextXAlignment = Enum.TextXAlignment.Left
@@ -2787,7 +3335,7 @@ function Library:CreateTab(name, subtitle, iconName)
 			sub.Text = subtitle
 			sub.Size = UDim2.new(1, 0, 0, 12)
 			sub.Position = UDim2.new(0, 0, 0, 22)
-			sub.Font = Enum.Font.Gotham
+			sub.Font = window.FontRegular
 			sub.TextSize = 12
 			sub.BackgroundTransparency = 1
 			sub.TextXAlignment = Enum.TextXAlignment.Left
@@ -2806,7 +3354,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		input.Text = default
 		input.PlaceholderText = placeholder
 		input.TextXAlignment = Enum.TextXAlignment.Right
-		input.Font = Enum.Font.Gotham
+		input.Font = window.FontRegular
 		input.TextSize = 14
 		input.BackgroundTransparency = 1
 		
@@ -2905,7 +3453,7 @@ function Library:CreateProfileTab(options)
 		pTitle.Size = UDim2.new(1, -60, 0, 16)
 		pTitle.Position = UDim2.new(0, 55, 0.35, -8)
 		pTitle.BackgroundTransparency = 1
-		pTitle.Font = Enum.Font.GothamBold
+		pTitle.Font = window.FontBold
 		pTitle.TextSize = 13
 		pTitle.TextXAlignment = Enum.TextXAlignment.Left
 		pTitle.TextTruncate = Enum.TextTruncate.AtEnd
@@ -2916,7 +3464,7 @@ function Library:CreateProfileTab(options)
 		pSub.Size = UDim2.new(1, -60, 0, 12)
 		pSub.Position = UDim2.new(0, 55, 0.35, 8)
 		pSub.BackgroundTransparency = 1
-		pSub.Font = Enum.Font.Gotham
+		pSub.Font = window.FontRegular
 		pSub.TextSize = 11
 		pSub.TextXAlignment = Enum.TextXAlignment.Left
 		pSub.TextTruncate = Enum.TextTruncate.AtEnd
@@ -2983,7 +3531,7 @@ function Library:CreateProfileTab(options)
 			bigTitle.Size = UDim2.new(1, 0, 0, 25)
 			bigTitle.Position = UDim2.new(0, 0, 0, 100)
 			bigTitle.BackgroundTransparency = 1
-			bigTitle.Font = Enum.Font.GothamBold
+			bigTitle.Font = window.FontBold
 			bigTitle.TextSize = 22
 			bigTitle.TextXAlignment = Enum.TextXAlignment.Center
 			
@@ -2992,7 +3540,7 @@ function Library:CreateProfileTab(options)
 			bigSub.Size = UDim2.new(1, 0, 0, 20)
 			bigSub.Position = UDim2.new(0, 0, 0, 125)
 			bigSub.BackgroundTransparency = 1
-			bigSub.Font = Enum.Font.Gotham
+			bigSub.Font = window.FontRegular
 			bigSub.TextSize = 14
 			bigSub.TextXAlignment = Enum.TextXAlignment.Center
 			

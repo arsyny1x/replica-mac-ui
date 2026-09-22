@@ -8,7 +8,11 @@ A modern, sleek, and macOS-inspired User Interface library for Roblox scripts. D
 
 - **MacOS Aesthetic**: Authentic look with "traffic light" window controls, sidebar navigation, and smooth animations.
 - **Fully Interactive**: Draggable, Resizable, and Minimizable window.
-- **Theme System**: Built-in `Light`, `Dark`, and `Purple` themes with dynamic switching.
+- **Theme System**: Built-in `Light`, `Dark`, `Purple` (+ `Green`, `Orange`, `Pink`, `Blue`, `Red`, `Neon`) themes with dynamic switching.
+- **Genie Minimize**: iPhone-style shrink-and-fly animation into the Dock pill (green button, Dock click, or `ToggleKey` all use it).
+- **SF-style Fonts**: iPhone-like typography via `BuilderSans` (auto-falls back to `Gotham`), customizable per weight.
+- **Optional Glass Looks**: `Vibrancy` / `LiquidGlass` modes for translucent frosted panels (off by default).
+- **Animated Tabs**: crossfading highlight, content fade-and-rise, hover glow, press scale, and an `OnTabChanged` event.
 - **Configuration Manager**: Easy Save/Load system using `Flags`.
 - **Rich Elements**:
   - Toggles (Switch style)
@@ -39,9 +43,28 @@ local Window = Library.CreateWindow({
 	Size = UDim2.fromOffset(550, 350),
 	Position = UDim2.fromScale(0.5, 0.5),
 	AnchorPoint = Vector2.new(0.5, 0.5),
-	Theme = "Light", -- Light, Dark, Purple
+	Theme = "Light", -- Light, Dark, Purple, Green, Orange, Pink, Blue, Red, Neon
 	ToggleKey = Enum.KeyCode.RightControl,
+	-- Fonts (iPhone SF-style; BuilderSans with Gotham fallback)
+	-- FontRegular / FontMedium / FontBold / FontHeavy (Enum.Font)
+	-- HeadFontSize = 17, -- section headline size (default 17)
+	-- BodyFontSize = 12, -- section description size (default 12)
+	-- Glass looks (both off by default = classic opaque look)
+	-- Vibrancy = false, -- translucent panels
+	-- VibrancyAmount = 0.15, -- panel transparency when Vibrancy is on
+	-- LiquidGlass = false, -- frosted-glass sheen + glowing edge + translucent groups
 })
+```
+
+#### Window Effects & Helpers
+```lua
+Window:MinimizeToDock() -- fly the window into the Dock pill (iOS Genie style)
+Window:RestoreFromDock() -- expand back from the Dock pill
+Window:RefreshLayout() -- re-fit groups and redraw stuck content
+Window.OnTabChanged = function(tabId, tabName) -- fires on every tab switch
+    print("tab:", tabId, tabName)
+end
+print(Library.Version) -- e.g. "2.5.0"
 ```
 
 #### Destroy Ui
@@ -75,7 +98,9 @@ Used to group elements visually.
 ```lua
 local MySection = MainTab:Section({ 
     Title = "Selection", 
-    Subtitle = "Hello World" 
+    Subtitle = "Hello World",
+    HeadSize = 17, -- headline font size (default = Window.HeadFontSize, 17)
+    BodySize = 12, -- description font size (default = Window.BodyFontSize, 12)
 })
 
 -- Update New Text
@@ -121,7 +146,7 @@ end)
 
 ### Slider
 Supports `Flag` for config saving.
-Returns an object with `:Set(value)` / `:SetValue(value)`, `:Get()`, and `:OnChanged(callback)` — WindUI style. Knob + fill tween automatically when value is changed from script.
+Returns an object with `:Set(value)` / `:SetValue(value)`, `:Get()`, and `:OnChanged(callback)` — WindUI style. Knob + fill tween automatically when value is changed from script. Dragging is locked to the finger that grabbed it, so walking (joystick) or camera drags can't hijack the slider on mobile. The value popup is unclippable and follows the knob.
 ```lua
 local MySlider = MainTab:Slider({
     Title = "Slider",
@@ -184,6 +209,37 @@ MainTab:Radio({
         print("Selected Mode:", value)
     end
 })
+```
+
+### Checkboxes
+macOS-style inline checkbox group in a single row. Options sit side-by-side and wrap to the next line only when they overflow (row height grows automatically). White vector checkmark on blue.
+Supports `Flag` for config saving.
+Returns an object with `:OnChanged(callback)`, `:Get()`, and `:Set(value)`.
+```lua
+local Widgets = MainTab:Checkboxes({
+    Title = "Show Widgets",
+    Subtitle = "Choose surfaces",
+    Icon = "lucide:a-arrow-up",
+    Options = {"On Desktop", "In Stage Manager"},
+    Value = {"On Desktop"}, -- default (table for Multi, string for Single)
+    SelectionMode = "Multi", -- or "Single" (only one selected at a time)
+    Flag = "Widgets",
+    Callback = function(val)
+        print(val)
+    end
+})
+
+-- Multi returns a state table: {["On Desktop"] = true, ["In Stage Manager"] = false}
+-- Single returns the selected option string (or nil)
+Widgets:OnChanged(function(val)
+    print("changed:", val)
+end)
+
+-- Programmatically set (list or map for Multi, string for Single)
+Widgets:Set({"In Stage Manager"})
+
+-- Read current value
+print(Widgets:Get())
 ```
 
 ### Textinput
