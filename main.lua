@@ -16,7 +16,7 @@ end
 
 local Library = {}
 Library.__index = Library
-Library.Version = "2.5.0"
+Library.Version = "2.6.0"
 
 function Library.CreateWindow(options)
 	local self = setmetatable({}, Library)
@@ -76,12 +76,47 @@ function Library.CreateWindow(options)
 	self.Container.BackgroundTransparency = 1
 	self.Container.Parent = self.ScreenGui
 	self.Scale = 1
+	self.IsMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
-	if UserInputService.TouchEnabled then
+	-- [Mobile] shrink the requested window so it fits narrow portrait screens.
+	-- 650px @0.7 = ~455px still overflows a ~390px phone, so clamp to the viewport.
+	if self.IsMobile then
+		local cam = workspace.CurrentCamera
+		local vw = (cam and cam.ViewportSize.X) or 800
+		local vh = (cam and cam.ViewportSize.Y) or 600
+		local margin = 16 -- keep game buttons tappable around the window
+		local maxW = math.max(300, vw - margin * 2)
+		local maxH = math.max(320, vh - margin * 2)
+		local w = math.min(size.X.Offset, maxW)
+		local h = math.min(size.Y.Offset, maxH)
+		if w < size.X.Offset or h < size.Y.Offset then
+			size = UDim2.fromOffset(math.floor(w), math.floor(h))
+		end
+		size = UDim2.fromOffset(math.max(300, size.X.Offset), math.max(280, size.Y.Offset))
+		position = UDim2.fromScale(0.5, 0.5)
+		self.OriginalSize = size
+	end
+
+	-- empty areas of the container must not eat game touches (attack/dash/jump)
+	self.Container.Active = false
+
+	if self.IsMobile then
 		local uiScale = Instance.new("UIScale")
 		uiScale.Scale = 0.7
 		uiScale.Parent = self.Container
 		self.Scale = 0.7
+		-- re-clamp after the 0.7 scale so the scaled window still fits + keeps margins
+		task.defer(function()
+			local cam2 = workspace.CurrentCamera
+			if not cam2 then return end
+			local vw2 = cam2.ViewportSize.X
+			local need = (self.Main.AbsoluteSize.X + 32) / math.max(1, vw2)
+			if need > 1 then
+				local ns = math.max(0.4, 0.7 / need)
+				uiScale.Scale = ns
+				self.Scale = ns
+			end
+		end)
 	end
 
 	self.IsMinimized = false
@@ -989,7 +1024,22 @@ function Library.CreateWindow(options)
 	table.insert(self.Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
-			self.Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+			local want = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+			if self.IsMobile then
+				-- keep the window inside the viewport: half-size clamps in offset space
+				local cam3 = workspace.CurrentCamera
+				if cam3 then
+					local vw3, vh3 = cam3.ViewportSize.X, cam3.ViewportSize.Y
+					local hw = self.Main.AbsoluteSize.X / 2
+					local hh = self.Main.AbsoluteSize.Y / 2
+					local cx = vw3 / 2 + want.X.Offset * self.Scale
+					local cy = vh3 / 2 + want.Y.Offset * self.Scale
+					cx = math.clamp(cx, hw, math.max(hw, vw3 - hw))
+					cy = math.clamp(cy, hh, math.max(hh, vh3 - hh))
+					want = UDim2.new(0.5, (cx - vw3 / 2) / self.Scale, 0.5, (cy - vh3 / 2) / self.Scale)
+				end
+			end
+			self.Main.Position = want
 		elseif resizing then
 			local isTouch = currentResizeInput.UserInputType == Enum.UserInputType.Touch
 			local isValid = (isTouch and input == currentResizeInput) or (not isTouch and input.UserInputType == Enum.UserInputType.MouseMovement)
@@ -999,11 +1049,13 @@ function Library.CreateWindow(options)
 				local newX = rStartSize.X.Offset
 				local newY = rStartSize.Y.Offset
 				
+				local minW = self.IsMobile and 300 or 450
+				local minH = self.IsMobile and 280 or 300
 				if resizeDir == "Both" or resizeDir == "X" then
-					newX = math.max(450, newX + delta.X)
+					newX = math.max(minW, newX + delta.X)
 				end
 				if resizeDir == "Both" or resizeDir == "Y" then
-					newY = math.max(300, newY + delta.Y)
+					newY = math.max(minH, newY + delta.Y)
 				end
 
 				local newSize = UDim2.fromOffset(newX, newY)
