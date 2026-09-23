@@ -16,7 +16,7 @@ end
 
 local Library = {}
 Library.__index = Library
-Library.Version = "2.8.1"
+Library.Version = "2.8.2"
 
 function Library.CreateWindow(options)
 	local self = setmetatable({}, Library)
@@ -1271,14 +1271,34 @@ function Library.CreateWindow(options)
 					elseif desc.Name == "Group" and desc:IsA("Frame") then
 						for _, l in ipairs(desc:GetChildren()) do
 							if l:IsA("UIListLayout") then
-								local h = l.AbsoluteContentSize.Y
-								if h >= 1 then desc.Size = UDim2.new(1, 0, 0, h) end
+								local need = l.AbsoluteContentSize.Y
+								if need >= 1 and desc.AbsoluteSize.Y < need - 2 then
+									desc.AutomaticSize = Enum.AutomaticSize.None
+									desc.Size = UDim2.new(1, 0, 0, need)
+									task.defer(function()
+										pcall(function()
+											if desc.Parent then desc.AutomaticSize = Enum.AutomaticSize.Y end
+										end)
+									end)
+								end
 							end
 						end
 					end
 				end
 			end
 		end
+	end
+
+	-- re-check groups after resize/rotation (mobile rotate safety, debounced)
+	do
+		local _rlT = nil
+		self.Main:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+			if _rlT then task.cancel(_rlT) end
+			_rlT = task.delay(0.3, function()
+				_rlT = nil
+				pcall(function() self:RefreshLayout() end)
+			end)
+		end)
 	end
 
 	-- Apply Initial Theme
@@ -1625,7 +1645,7 @@ function Library:CreateTab(name, subtitle, iconName)
 		group.Name = "Group"
 		group.LayoutOrder = elementCount
 		group.Size = UDim2.new(1, 0, 0, 1)
-		group.AutomaticSize = Enum.AutomaticSize.None
+		group.AutomaticSize = Enum.AutomaticSize.Y
 		group.BackgroundColor3 = window.CurrentTheme.ElementBG
 		group.BackgroundTransparency = window.LiquidGlass and 0.25 or 0
 		group.BorderSizePixel = 0
@@ -1643,15 +1663,28 @@ function Library:CreateTab(name, subtitle, iconName)
 		layout.SortOrder = Enum.SortOrder.LayoutOrder
 		layout.Padding = UDim.new(0, 0)
 
-		-- [Fix] AutomaticSize does not recalc inside a CanvasGroup, so groups stayed
-		-- 0px tall until the user scrolled. Size the group from its layout instead.
-		local function fitGroup()
-			local h = layout.AbsoluteContentSize.Y
-			if h < 1 then h = 1 end
-			group.Size = UDim2.new(1, 0, 0, h)
+		-- [Fix] groups stay dynamic (AutomaticSize, exactly like older versions, so old
+		-- scripts behave identically). Inside a CanvasGroup the auto height can stall
+		-- short on some devices (clipped buttons, half-covered and untappable), so this
+		-- watchdog only steps in when stuck and otherwise never touches the size.
+		local function unstickGroup()
+			local need = layout.AbsoluteContentSize.Y
+			local have = group.AbsoluteSize.Y
+			if need >= 1 and have < need - 2 then
+				group.AutomaticSize = Enum.AutomaticSize.None
+				group.Size = UDim2.new(1, 0, 0, need)
+				task.defer(function()
+					pcall(function()
+						if group.Parent then group.AutomaticSize = Enum.AutomaticSize.Y end
+					end)
+				end)
+			end
 		end
-		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fitGroup)
-		task.defer(fitGroup)
+		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			task.defer(unstickGroup)
+		end)
+		task.defer(unstickGroup)
+		task.delay(0.5, function() pcall(unstickGroup) end) -- slow/mobile devices
 		
 		window:AddThemeObject(group, {BackgroundColor3 = "ElementBG"})
 		currentGroup = group
