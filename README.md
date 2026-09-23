@@ -56,6 +56,20 @@ local Window = Library.CreateWindow({
 })
 ```
 
+#### Mobile
+On touch devices the library only adjusts the overall scale so the window fits the phone screen — your `Size` / `Position` and every element stay exactly as written, so older scripts run unchanged. Default scale is `0.55`; tune it with `MobileScale`:
+```lua
+Library.CreateWindow({
+	Title = "MacHub",
+	MobileScale = 0.55, -- phone UI scale (0.35 smallest / 0.7 largest)
+})
+```
+Test values live without re-running the script (in the executor console):
+```lua
+Window:SetMobileScale(0.4)
+```
+Passing `MobileScale` always takes effect, even in Studio/PC preview. On run, the console (F9) prints a `[ReplicaMac] mobile: ...` line showing touch/keyboard detection, the active scale, and the viewport — if the version printed there is older than this README, the running copy is outdated.
+
 #### Window Effects & Helpers
 ```lua
 Window:MinimizeToDock() -- fly the window into the Dock pill (iOS Genie style)

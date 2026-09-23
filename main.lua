@@ -16,7 +16,7 @@ end
 
 local Library = {}
 Library.__index = Library
-Library.Version = "2.6.0"
+Library.Version = "2.8.1"
 
 function Library.CreateWindow(options)
 	local self = setmetatable({}, Library)
@@ -67,6 +67,13 @@ function Library.CreateWindow(options)
 	self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	self.ScreenGui.DisplayOrder = 100000
 	self.ScreenGui.Parent = playerGui
+	print("[ReplicaMac] v" .. Library.Version .. " loaded")
+	task.defer(function()
+		print(("[ReplicaMac] mobile: touch=%s keyboard=%s isMobile=%s scale=%s viewport=%s"):format(
+			tostring(UserInputService.TouchEnabled), tostring(UserInputService.KeyboardEnabled),
+			tostring(self.IsMobile), tostring(self.MobileScale),
+			tostring(workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or "no-camera")))
+	end)
 
 	self.Container = Instance.new("Frame")
 	self.Container.Name = "Container"
@@ -76,23 +83,26 @@ function Library.CreateWindow(options)
 	self.Container.BackgroundTransparency = 1
 	self.Container.Parent = self.ScreenGui
 	self.Scale = 1
-	self.IsMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	local _touch = UserInputService.TouchEnabled
+	local _nokey = not UserInputService.KeyboardEnabled
+	-- explicit MobileScale always takes effect (even in Studio/PC preview);
+	-- otherwise auto-detect touch devices without a keyboard.
+	self.IsMobile = (_touch and _nokey) or options.MobileScale ~= nil
 
-	-- [Mobile] shrink the requested window so it fits narrow portrait screens.
-	-- 650px @0.7 = ~455px still overflows a ~390px phone, so clamp to the viewport.
+	-- [Mobile] the script's own Size/Position are never modified, so old scripts
+	-- run exactly as written. Only the overall scale adapts to fit phones.
+	-- Displayed size = size * scale. Tune with options.MobileScale (default 0.55).
+	self.MobileScale = options.MobileScale or 0.55
 	if self.IsMobile then
 		local cam = workspace.CurrentCamera
 		local vw = (cam and cam.ViewportSize.X) or 800
 		local vh = (cam and cam.ViewportSize.Y) or 600
-		local margin = 16 -- keep game buttons tappable around the window
-		local maxW = math.max(300, vw - margin * 2)
-		local maxH = math.max(320, vh - margin * 2)
-		local w = math.min(size.X.Offset, maxW)
-		local h = math.min(size.Y.Offset, maxH)
-		if w < size.X.Offset or h < size.Y.Offset then
-			size = UDim2.fromOffset(math.floor(w), math.floor(h))
-		end
-		size = UDim2.fromOffset(math.max(300, size.X.Offset), math.max(280, size.Y.Offset))
+		-- fit the requested size inside the viewport, leaving room for game buttons
+		local fitW = (vw - 32) / math.max(1, size.X.Offset)
+		local fitH = (vh - 32) / math.max(1, size.Y.Offset)
+		local scale = math.min(self.MobileScale, fitW, fitH)
+		scale = math.clamp(scale, 0.35, 0.7)
+		self.MobileScale = scale
 		position = UDim2.fromScale(0.5, 0.5)
 		self.OriginalSize = size
 	end
@@ -102,19 +112,31 @@ function Library.CreateWindow(options)
 
 	if self.IsMobile then
 		local uiScale = Instance.new("UIScale")
-		uiScale.Scale = 0.7
+		uiScale.Scale = self.MobileScale
 		uiScale.Parent = self.Container
-		self.Scale = 0.7
-		-- re-clamp after the 0.7 scale so the scaled window still fits + keeps margins
+		self.Scale = self.MobileScale
+		self._MobileUIScale = uiScale
+		-- change phone scale live without re-running the script: Window:SetMobileScale(0.4)
+		function self:SetMobileScale(v)
+			if type(v) ~= "number" then return end
+			v = math.clamp(v, 0.3, 1)
+			self.MobileScale = v
+			self.Scale = v
+			if self._MobileUIScale then self._MobileUIScale.Scale = v end
+		end
+		-- re-clamp after layout using the real rendered size (rotation/resize safe)
 		task.defer(function()
 			local cam2 = workspace.CurrentCamera
 			if not cam2 then return end
-			local vw2 = cam2.ViewportSize.X
-			local need = (self.Main.AbsoluteSize.X + 32) / math.max(1, vw2)
+			local vw2, vh2 = cam2.ViewportSize.X, cam2.ViewportSize.Y
+			local needW = (self.Main.AbsoluteSize.X + 32) / math.max(1, vw2)
+			local needH = (self.Main.AbsoluteSize.Y + 32) / math.max(1, vh2)
+			local need = math.max(needW, needH)
 			if need > 1 then
-				local ns = math.max(0.4, 0.7 / need)
+				local ns = math.max(0.35, self.MobileScale / need)
 				uiScale.Scale = ns
 				self.Scale = ns
+				self.MobileScale = ns
 			end
 		end)
 	end
